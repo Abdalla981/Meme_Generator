@@ -143,26 +143,4 @@ class ImageText(object):
                 self.write_text(last_word_x, height, words[-1], font_filename,
                                 font_size, color)
         return (box_width, height - y)
-
-if __name__ == "__main__":
-    try:
-        images_path = sys.argv[1]
-    except Exception:
-        images_path = "Meme_drawer"
-    captions_path = os.path.join(images_path, "test_captions.txt")
-    color = (255, 255, 255)
-    images = [image for image in os.listdir(images_path) if image.endswith('.jpg')]
-    with open(captions_path, "r") as f:
-        lines = [line.strip().split('-') for line in f]
-    text1 = [line[0].strip() for line in lines]
-    text2 = [line[1].strip() for line in lines]
-    for i, ting in enumerate(images):
-        text1 = text1[i].upper()
-        text2 = text2[i].upper()
-        img = ImageText(os.path.join(images_path, images[i]))
-        img.write_text_box(0, 0, text1, box_width=img.size[0]+2, font_filename=font,
-                           font_size=32, color=color, place='center')
-        img.write_text_box(0, 255, text2, box_width=img.size[0]+2, font_filename=font,
-                           font_size=32, color=color, place='center', bottom=True)
-        img.save(os.path.join(images_path, 'updated',
-                 images[i].split('.')[0] + '-updated' + '.jpg'))
+    

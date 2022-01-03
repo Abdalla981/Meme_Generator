@@ -9,6 +9,7 @@ venv/
 REAL_EMBEDDING_MATRIX
 *.pb
 *.mlmodel
+saved.txt
 
 tf-coreml/build/
 tf-coreml/dist/
@@ -26,6 +27,7 @@ tf-coreml/.idea/
 *.o
 *.so
 *.npy
+__pycache__/*
 
 # Packages #
 ############
