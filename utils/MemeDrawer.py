@@ -2,7 +2,17 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 import os
-import sys
+
+'''
+This class implements a meme drawer, where the meme image is initialized and a text can be written on top.
+
+Methods:
+- save: saves the image
+- get_font_size: calculates the font size
+- write_text: writes the text on the image
+- write_text_box: splits the text to lines according to box_width and uses write_text to write each line
+- get_text_size: returns the sixe of the text
+'''
 
 
 class ImageText(object):
@@ -54,8 +64,6 @@ class ImageText(object):
     def write_text(self, x, y, text, font_filename, font_size=11,
                    color=(0, 0, 0), max_width=None, max_height=None, 
                    stroke_width=2, stroke_fill=(0, 0, 0)):
-        # if isinstance(text, str):
-        #     text = text.decode(self.encoding)
         if font_size == 'fill' and \
            (max_width is not None or max_height is not None):
             font_size = self.get_font_size(text, font_filename, max_width,

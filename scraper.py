@@ -5,6 +5,10 @@ import shutil
 import os.path
 import re
 
+'''
+This script scrappes the memegenerator.net website and downloads meme images and text into local drive
+'''
+
 images_path = 'memes3'
 captions_path = 'Captions3.txt'
 n_captions = 15   #this number *15 is the total number of captions per template
@@ -13,7 +17,7 @@ Uerrors = 0
 num_memes_downloaded = 0
 regex = re.compile('[^a-zA-Z0-9 ]')
 
-for i in range(1,n_pages):
+for i in range(1, n_pages):
     if i == 1:
         url = 'https://memegenerator.net/memes/popular/alltime'
         # url = 'https://memegenerator.net/memes/popular/month'
@@ -26,6 +30,8 @@ for i in range(1,n_pages):
     links = [char.find('a') for char in chars]
     imgs = [char.find('img') for char in chars]
     assert len(links) == len(imgs)
+    if len(imgs) < 1:
+        break
     for j, img in enumerate(imgs):
         img_url = img['src']
         response = requests.get(img_url, stream=True)
@@ -38,11 +44,9 @@ for i in range(1,n_pages):
                 URL = 'https://memegenerator.net' + links[j]['href'] + '/images/popular/alltime/page/' + str(k)
             R = requests.get(URL)
             SOUP = BeautifulSoup(R.text,'html.parser')
-            if k==1:
-                #check if meme has > n_captions posts
-                POSTS = SOUP.find_all(class_='generator-img')
-                if (len(POSTS) < n_captions):
-                    continue
+            POSTS = SOUP.find_all(class_='generator-img')
+            if (len(POSTS) < 1):
+                break
             CHARS = SOUP.find_all(class_='single-generator')
             TAGS = [char.find(class_='optimized-instance-container img') for char in CHARS]
             MEMES = [tag.getText().strip().replace('\n', ' ') for tag in TAGS]
