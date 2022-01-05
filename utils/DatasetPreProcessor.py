@@ -17,6 +17,7 @@ and removing leading and trailing spaces.
 - remove_captions_with_non_standard_characters: removes captions that have non-lating letter
 - remove_duplicate_captions: remove duplicated captions per image
 - remove_low_captioned_images: removes images and corresponding captions if the number of captions is low
+- remove_very_long_and_short_captions: removes very long and very short captions
 '''
 
 class DatasetPreProcessor(Dataset):
