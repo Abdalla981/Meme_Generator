@@ -8,6 +8,8 @@ import sys
 class ImageText(object):
     def __init__(self, filename_or_size, desired_size=300, mode='RGBA', background=(0, 0, 0, 0),
                  encoding='utf8'):
+        if filename_or_size is None:
+            raise ValueError('filename_or_size is None!')
         if isinstance(filename_or_size, str):
             self.filename = filename_or_size
             image = Image.open(self.filename)
@@ -21,6 +23,7 @@ class ImageText(object):
             self.image = Image.new(mode, self.size, color=background)
             self.filename = None
         elif isinstance(filename_or_size, Image.Image):
+            self.filename = filename_or_size
             image = filename_or_size
             baseheight = desired_size
             hpercent = (baseheight/float(image.size[1]))
@@ -28,7 +31,6 @@ class ImageText(object):
             self.image = image.resize((wsize, baseheight), Image.ANTIALIAS)
             self.size = self.image.size
         self.draw = ImageDraw.Draw(self.image)
-        self.encoding = encoding
 
     def save(self, filename=None):
         self.image.save(filename or self.filename)
