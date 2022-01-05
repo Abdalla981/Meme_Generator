@@ -9,7 +9,6 @@ venv/
 REAL_EMBEDDING_MATRIX
 *.pb
 *.mlmodel
-saved.txt
 Notes/
 old_dataset/
 

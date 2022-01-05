@@ -2,12 +2,24 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 import os
-import sys
+
+'''
+This class implements a meme drawer, where the meme image is initialized and a text can be written on top.
+
+Methods:
+- save: saves the image
+- get_font_size: calculates the font size
+- write_text: writes the text on the image
+- write_text_box: splits the text to lines according to box_width and uses write_text to write each line
+- get_text_size: returns the sixe of the text
+'''
 
 
 class ImageText(object):
     def __init__(self, filename_or_size, desired_size=300, mode='RGBA', background=(0, 0, 0, 0),
                  encoding='utf8'):
+        if filename_or_size is None:
+            raise ValueError('filename_or_size is None!')
         if isinstance(filename_or_size, str):
             self.filename = filename_or_size
             image = Image.open(self.filename)
@@ -21,6 +33,7 @@ class ImageText(object):
             self.image = Image.new(mode, self.size, color=background)
             self.filename = None
         elif isinstance(filename_or_size, Image.Image):
+            self.filename = filename_or_size
             image = filename_or_size
             baseheight = desired_size
             hpercent = (baseheight/float(image.size[1]))
@@ -28,7 +41,6 @@ class ImageText(object):
             self.image = image.resize((wsize, baseheight), Image.ANTIALIAS)
             self.size = self.image.size
         self.draw = ImageDraw.Draw(self.image)
-        self.encoding = encoding
 
     def save(self, filename=None):
         self.image.save(filename or self.filename)
@@ -52,8 +64,6 @@ class ImageText(object):
     def write_text(self, x, y, text, font_filename, font_size=11,
                    color=(0, 0, 0), max_width=None, max_height=None, 
                    stroke_width=2, stroke_fill=(0, 0, 0)):
-        # if isinstance(text, str):
-        #     text = text.decode(self.encoding)
         if font_size == 'fill' and \
            (max_width is not None or max_height is not None):
             font_size = self.get_font_size(text, font_filename, max_width,

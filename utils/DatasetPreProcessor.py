@@ -1,0 +1,93 @@
+import re
+import string
+from utils.Dataset import Dataset
+from nltk.corpus import words, wordnet, webtext, nps_chat, reuters
+from nltk.stem import WordNetLemmatizer
+
+'''
+This class inherits the Dataset class and processes the dataset to clean it up 
+and remove any undesired captions or images
+
+Mehtods:
+- clean_captions: cleans up the captions by removing punctuations, lowercasing the words 
+and removing leading and trailing spaces.
+- remove_non_english_words: removes non-english captions using a text corpus from nltk
+(words, wordnet, webtext, nps_chat, reuters)
+- remove_missing_images: removes images corresponding captions if the image is not found
+- remove_captions_with_non_standard_characters: removes captions that have non-lating letter
+- remove_duplicate_captions: remove duplicated captions per image
+- remove_low_captioned_images: removes images and corresponding captions if the number of captions is low
+'''
+
+class DatasetPreProcessor(Dataset):
+    def __init__(self, captions_path, images_path, captions_regex_str='[^a-zA-Z ]', min_captions=50):
+        super().__init__(captions_path, images_path)
+        self.captions_regex = re.compile(captions_regex_str)
+        self.min_captions = min_captions
+        self.remove_missing_images()
+        self.clean_captions()
+        self.remove_captions_with_non_standard_characters()
+        self.remove_non_english_captions()
+        self.remove_duplicate_captions()
+        self.remove_low_captioned_images()
+    
+    def clean_captions(self):
+        table = str.maketrans('', '', string.punctuation)
+        for name, captions in self.captions.items():
+            for i, caption in enumerate(captions):
+                # change the caption to lower case
+                caption = caption.lower()
+                # remove punctuations
+                caption = caption.translate(table)
+                # remove leading and trailing white spaces 
+                caption = [word.strip() for word in caption.split()]
+                captions[i] = ' '.join(caption)
+                
+    def remove_non_english_captions(self):
+        del_captions = 0
+        en_dict = list(words.words()) + list(wordnet.words()) + list(webtext.words())
+        en_dict += list(nps_chat.words()) + list(reuters.words())
+        en_words = set(w.lower() for w in en_dict)
+        lemmatizer = WordNetLemmatizer().lemmatize
+        lemm_func = lambda x: lemmatizer(x)
+        for name, captions in self.captions.items():
+            english_captions = [caption for caption in captions 
+                                if (len(set(lemm_func(word) for word in caption.split()) - en_words) < 1)]
+            del_captions += len(self.captions[name]) - len(english_captions)
+            self.captions[name][:] = english_captions
+        print(f'Removed {del_captions} captions due to non-english words!')
+                
+    def remove_missing_images(self):
+        for name, _ in self.not_found_images:
+            del self.captions[name]
+            del self.images[name]
+        print(f'Removed {len(self.not_found_images)} images due to missing file!')
+
+    def remove_captions_with_non_standard_characters(self):
+        del_captions = 0
+        en_words = set(w.lower() for w in words.words())
+        for name, captions in list(self.captions.items()):
+            accepted_captions = [caption for caption in captions
+                                      if self.captions_regex.search(caption) is None 
+                                      and len(caption) > 5]
+            del_captions += len(self.captions[name]) - len(accepted_captions)
+            self.captions[name][:] = accepted_captions
+        print(f'Removed {del_captions} captions due to non-standard format!')
+        
+    def remove_duplicate_captions(self):
+        del_captions = 0
+        for name, captions in self.captions.items():
+            accepted_captions = list(set(captions))
+            del_captions += len(self.captions[name]) - len(accepted_captions)
+            self.captions[name][:] = accepted_captions
+        print(f'Removed {del_captions} captions due to duplication!')
+        
+    def remove_low_captioned_images(self):
+        del_images = 0
+        for name, captions in list(self.captions.items()):
+            if len(captions) < self.min_captions:
+                del self.captions[name]
+                del self.images[name]
+                del_images += 1
+        print(f'Removed {del_images} images due to insufficient captions!')
+            
