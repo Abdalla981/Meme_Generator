@@ -19,4 +19,6 @@ if __name__ == '__main__':
     print(f'Number of vocabulary: {process_dataset_obj.num_of_vocab}')
     for item in process_dataset_obj.get_captions_counter().most_common(10):
         print(item)
+    process_dataset_obj.show_samples(output_file_path='Meme_drawer')
+    
     

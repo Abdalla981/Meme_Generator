@@ -14,13 +14,14 @@ Methods:
 '''
 
 class DatasetProcessor(Dataset):
-    def __init__(self, captions_path, images_path, clean_dataset=True, captions_regex_str='[^a-zA-Z ]', min_captions=50):
+    def __init__(self, captions_path, images_path):
         super().__init__(captions_path, images_path)
         self.vocab = self.captions_to_vocabulary()
         self.captions_list = self.captions_to_list()
         self.num_of_images = len(self.images)
         self.num_of_captions = len(self.captions_list)
         self.num_of_vocab = len(self.vocab)
+        self.max_seq_length = self.tallest_seq_length()
     
     def captions_to_vocabulary(self):
         vocab = set()
@@ -43,7 +44,7 @@ class DatasetProcessor(Dataset):
     def create_sequences(self):
         pass
     
-    def max_length(self):
+    def tallest_seq_length(self):
         pass
     
     def load_photo_features(self):
