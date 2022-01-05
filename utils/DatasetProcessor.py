@@ -6,10 +6,10 @@ This class inherits the Dataset class and prepares the dataset to be passed thro
 Methods:
 - captions_to_vocabulary: computes a set of the vocabulary used in the captions
 - captions_to_list: returns a list of all captions
-- add_tokens_to_caption: TODO
+- add_tokens_to_caption: Adds start and end token to each caption
 - captions_tokenizer: TODO
 - create_sequences: TODO
-- max_length: TODO
+- add_tokens_to_caption: returns the number of words in the tallest caption
 - load_photo_features: TODO
 '''
 
