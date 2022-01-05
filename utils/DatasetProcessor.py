@@ -14,8 +14,11 @@ Methods:
 '''
 
 class DatasetProcessor(Dataset):
-    def __init__(self, captions_path, images_path):
+    def __init__(self, captions_path, images_path, start_token='startseq', end_token='endseq'):
         super().__init__(captions_path, images_path)
+        self.start_token = start_token
+        self.end_token = end_token
+        self.add_tokens_to_caption()
         self.vocab = self.captions_to_vocabulary()
         self.captions_list = self.captions_to_list()
         self.num_of_images = len(self.images)
@@ -36,7 +39,10 @@ class DatasetProcessor(Dataset):
         return captions_list
     
     def add_tokens_to_caption(self):
-        pass
+        for name, captions in self.captions.items():
+            for i, caption in enumerate(captions):
+                tokened = ' '.join([self.start_token] + caption.split() + [self.end_token])
+                self.captions[name][i] = tokened
     
     def captions_tokenizer(self):
         pass
@@ -45,7 +51,7 @@ class DatasetProcessor(Dataset):
         pass
     
     def tallest_seq_length(self):
-        pass
+        return max(len(caption.split()) for caption in self.captions_list)
     
     def load_photo_features(self):
         pass

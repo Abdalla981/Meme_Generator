@@ -18,6 +18,7 @@ and removing leading and trailing spaces.
 - remove_duplicate_captions: remove duplicated captions per image
 - remove_low_captioned_images: removes images and corresponding captions if the number of captions is low
 - remove_very_long_and_short_captions: removes very long and very short captions
+- clean_dataset: calls all the above methods
 '''
 
 class DatasetPreProcessor(Dataset):
@@ -25,25 +26,30 @@ class DatasetPreProcessor(Dataset):
                  min_captions=50, min_length=2, max_length=25):
         super().__init__(captions_path, images_path)
         self.captions_regex = re.compile(captions_regex_str)
+        self.min_captions = min_captions
+        self.min_length = min_length
+        self.max_length = max_length
+    
+    def clean_dataset(self):
         self.remove_missing_images()
         self.clean_captions()
         self.remove_captions_with_non_standard_characters()
         self.remove_non_english_captions()
         self.remove_duplicate_captions()
-        self.remove_very_long_and_short_captions(min_length, max_length)
-        self.remove_low_captioned_images(min_captions)
-    
+        self.remove_very_long_and_short_captions()
+        self.remove_low_captioned_images()
+        
     def clean_captions(self):
         table = str.maketrans('', '', string.punctuation)
         for name, captions in self.captions.items():
             for i, caption in enumerate(captions):
                 # change the caption to lower case
-                caption = caption.lower()
+                captioned = caption.lower()
                 # remove punctuations
-                caption = caption.translate(table)
+                captioned = captioned.translate(table)
                 # remove leading and trailing white spaces 
-                caption = [word.strip() for word in caption.split()]
-                captions[i] = ' '.join(caption)
+                captioned = [word.strip() for word in captioned.split()]
+                self.captions[name][i] = ' '.join(captioned)
                 
     def remove_non_english_captions(self):
         del_captions = 0
@@ -82,20 +88,20 @@ class DatasetPreProcessor(Dataset):
             self.captions[name][:] = accepted_captions
         print(f'Removed {del_captions} captions due to duplication!')
 
-    def remove_very_long_and_short_captions(self, min_length, max_length):
+    def remove_very_long_and_short_captions(self):
         del_captions = 0
         for name, captions in self.captions.items():
             accepted_captions = [caption for caption in captions 
-                                 if (min_length <= len(caption.split()) <= max_length) 
+                                 if (self.min_length <= len(caption.split()) <= self.max_length) 
                                  and len(caption) > 3]
             del_captions += len(self.captions[name]) - len(accepted_captions)
             self.captions[name][:] = accepted_captions
         print(f'Removed {del_captions} captions due to length!')
         
-    def remove_low_captioned_images(self, min_captions):
+    def remove_low_captioned_images(self):
         del_images = 0
         for name, captions in list(self.captions.items()):
-            if len(captions) < min_captions:
+            if len(captions) < self.min_captions:
                 del self.captions[name]
                 del self.images[name]
                 del_images += 1
