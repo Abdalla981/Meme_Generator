@@ -79,18 +79,18 @@ class Dataset:
         vocab = Counter(words)
         return vocab
 
-    def show_samples(self, images=None, captions=None, num=5, color=(255, 255, 255), output_file_path=None):
-        names = [random.choice(list(self.captions.keys())) for i in range(num)]
-        if images is None:
-            images = self.images
-        if captions is None:
-            captions = self.captions
+    def show_samples(self, images_dict=None, captions_dict=None, num=5, color=(255, 255, 255), output_file_path=None):
+        if images_dict is None:
+            images_dict = self.images
+        if captions_dict is None:
+            captions_dict = self.captions
+        names = [random.choice(list(captions_dict.keys())) for i in range(num)]
         for name in names:
-            caption = captions[name][0].split()
+            caption = captions_dict[name][0].split()
             # split the text in half
             text1 = ' '.join(caption[:len(caption)//2])
             text2 = ' '.join(caption[len(caption)//2:])
-            image = images[name]
+            image = images_dict[name]
             if image is not None:
                 img = MemeDrawer.ImageText(image)
                 # write the first half of the text on top
