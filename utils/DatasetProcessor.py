@@ -1,7 +1,10 @@
+import enum
 import numpy as np
 from math import floor
 from utils.Dataset import Dataset
 from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import to_categorical
 
 '''
 This class inherits the Dataset class and prepares the dataset to be passed throught the model.
@@ -13,7 +16,7 @@ Methods:
 - captions_tokenizer: fits a tokenizer on the training data and returns the tokenizer
 - tallest_seq_length: returns the length of the tallest sequence
 - split_dataset: splits the dataset into train, validation and test sets
-- create_sequences: TODO
+- create_sequences: creates an array of sequences (image, sequence[:i], next_word[i])
 - load_photo_features: TODO
 - print_dataset_info: prints useful info on the loaded dataset
 '''
@@ -81,8 +84,19 @@ class DatasetProcessor(Dataset):
             test_images[name] = self.images[name]
         return (train_captions, train_images), (validation_captions, validation_images), (test_captions, test_images)
 
-    def create_sequences(self):
-        pass
+    def create_sequences(self, captions_dict, images_dict):
+        X1, X2, y = [], [], []
+        for name, captions in captions_dict.items():
+            for caption in captions:
+                sequence = self.tokenizer.texts_to_sequences([caption])[0]
+                for i in range(1, len(sequence)):
+                    in_sequence, out_sequence = sequence[:i], sequence[i]
+                    in_sequence = pad_sequences([in_sequence], maxlen=self.max_seq_length)[0]
+                    out_sequence = to_categorical([out_sequence], num_classes=self.num_of_vocab)
+                    X1.append(images_dict[name])
+                    X2.append(in_sequence)
+                    y.append(out_sequence)
+        return np.array(X1), np.array(X2), np.array(y)
     
     def tallest_seq_length(self):
         return max(len(caption.split()) for caption in self.train_captions_list)

@@ -11,18 +11,23 @@ if __name__ == '__main__':
     new_captions_path = 'CaptionsClean3.txt'
     
     if input('Clean Dataset?(y/n) ') == 'y':
-        preprocess_dataset_obj = DatasetPreProcessor(captions_path, images_path)
-        preprocess_dataset_obj.clean_dataset()
-        preprocess_dataset_obj.save_captions_to_file(new_captions_path)
+        prep_obj = DatasetPreProcessor(captions_path, images_path)
+        prep_obj.clean_dataset()
+        prep_obj.save_captions_to_file(new_captions_path)
     
-    process_dataset_obj = DatasetProcessor(new_captions_path, images_path)
-    process_dataset_obj.process_dataset()
-    process_dataset_obj.print_dataset_info()
+    process_obj = DatasetProcessor(new_captions_path, images_path)
+    process_obj.process_dataset()
+    process_obj.print_dataset_info()
+    X1, X2, y = process_obj.create_sequences(captions_dict=process_obj.train_captions,
+                                                     images_dict=process_obj.train_images)
     if input('Show a training images sample?(y/n) ') == 'y':
-        process_dataset_obj.show_samples(captions_dict=process_dataset_obj.train_captions, images_dict=process_dataset_obj.train_images)
+        process_obj.show_samples(captions_dict=process_obj.train_captions, 
+                                 images_dict=process_obj.train_images)
     if input('Show a validation images sample?(y/n) ') == 'y':
-        process_dataset_obj.show_samples(captions_dict=process_dataset_obj.validation_captions, images_dict=process_dataset_obj.validation_images)
+        process_obj.show_samples(captions_dict=process_obj.validation_captions, 
+                                 images_dict=process_obj.validation_images)
     if input('Show a test images sample?(y/n) ') == 'y':
-        process_dataset_obj.show_samples(captions_dict=process_dataset_obj.test_captions, images_dict=process_dataset_obj.test_images)
+        process_obj.show_samples(captions_dict=process_obj.test_captions, 
+                                 images_dict=process_obj.test_images)
     
     
