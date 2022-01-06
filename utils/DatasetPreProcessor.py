@@ -18,17 +18,23 @@ and removing leading and trailing spaces.
 - remove_duplicate_captions: remove duplicated captions per image
 - remove_low_captioned_images: removes images and corresponding captions if the number of captions is low
 - remove_very_long_and_short_captions: removes very long and very short captions
+- check_rare_words: accepts a caption and vocabulary counter and returns true if too many rare words
+are present. Otherwise, it returns false.
+- remove_captions_with_rare_words: removes captions with too many rare words. It uses check_rare_words.
 - clean_dataset: calls all the above methods
 '''
 
 class DatasetPreProcessor(Dataset):
     def __init__(self, captions_path, images_path, captions_regex_str='[^a-zA-Z ]', 
-                 min_captions=50, min_length=2, max_length=25):
+                 min_captions=50, min_words=2, max_words=25, word_freq_limit=3, 
+                 rare_word_limit=2):
         super().__init__(captions_path, images_path)
         self.captions_regex = re.compile(captions_regex_str)
         self.min_captions = min_captions
-        self.min_length = min_length
-        self.max_length = max_length
+        self.min_words = min_words
+        self.max_words = max_words
+        self.word_freq_limit = word_freq_limit
+        self.rare_word_limit = rare_word_limit
     
     def clean_dataset(self):
         self.remove_missing_images()
@@ -37,6 +43,7 @@ class DatasetPreProcessor(Dataset):
         self.remove_non_english_captions()
         self.remove_duplicate_captions()
         self.remove_very_long_and_short_captions()
+        self.remove_captions_with_rare_words()
         self.remove_low_captioned_images()
         
     def clean_captions(self):
@@ -92,7 +99,7 @@ class DatasetPreProcessor(Dataset):
         del_captions = 0
         for name, captions in self.captions.items():
             accepted_captions = [caption for caption in captions 
-                                 if (self.min_length <= len(caption.split()) <= self.max_length) 
+                                 if (self.min_words <= len(caption.split()) <= self.max_words) 
                                  and len(caption) > 3]
             del_captions += len(self.captions[name]) - len(accepted_captions)
             self.captions[name][:] = accepted_captions
@@ -106,4 +113,23 @@ class DatasetPreProcessor(Dataset):
                 del self.images[name]
                 del_images += 1
         print(f'Removed {del_images} images due to insufficient captions!')
+        
+    def remove_captions_with_rare_words(self):
+        del_captions = 0
+        vocab_counter = self.get_vocabulary_counter(captions_dict=self.captions)
+        for name, captions in self.captions.items():
+            accepted_captions = [caption for caption in captions if not self.check_rare_words(caption, vocab_counter)]
+            del_captions += len(self.captions[name]) - len(accepted_captions)
+            self.captions[name] = accepted_captions
+        print(f'Removed {del_captions} captions due to rare words!')
+                
+    def check_rare_words(self, caption, vocab_counter):
+        rare_words = 0
+        words = caption.split()
+        for word in words:
+            if vocab_counter[word] < self.word_freq_limit:
+                rare_words += 1
+        if rare_words > self.rare_word_limit:
+            return True
+        return False
             
