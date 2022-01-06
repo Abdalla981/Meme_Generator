@@ -1,40 +1,54 @@
+import numpy as np
+from math import floor
 from utils.Dataset import Dataset
+from keras.preprocessing.text import Tokenizer
 
 '''
 This class inherits the Dataset class and prepares the dataset to be passed throught the model.
 
 Methods:
-- captions_to_vocabulary: computes a set of the vocabulary used in the captions
+- process_dataset: prepares the dataset for training
 - captions_to_list: returns a list of all captions
 - add_tokens_to_caption: Adds start and end token to each caption
-- captions_tokenizer: TODO
+- captions_tokenizer: fits a tokenizer on the training data and returns the tokenizer
+- tallest_seq_length: returns the length of the tallest sequence
+- split_dataset: splits the dataset into train, validation and test sets
 - create_sequences: TODO
-- add_tokens_to_caption: returns the number of words in the tallest caption
 - load_photo_features: TODO
+- print_dataset_info: prints useful info on the loaded dataset
 '''
 
 class DatasetProcessor(Dataset):
-    def __init__(self, captions_path, images_path, start_token='startseq', end_token='endseq'):
+    def __init__(self, captions_path, images_path, start_token='startseq', end_token='endseq',
+                 split_value=(0.8, 0.1)):
         super().__init__(captions_path, images_path)
         self.start_token = start_token
         self.end_token = end_token
+        self.split_value = split_value
+        self.num_of_train_images = floor(self.num_of_samples * self.split_value[0])
+        self.num_of_validation_images = floor(self.num_of_samples * self.split_value[1])
+        self.tokenizer, self.num_of_vocab = None, None
+        self.train_captions_list, self.max_seq_length = None, None
+        self.train_captions, self.train_images = None, None
+        self.validation_captions, self.validation_images = None, None
+        self.test_captions, self.test_images = None, None
+        
+    def process_dataset(self):
         self.add_tokens_to_caption()
-        self.vocab = self.captions_to_vocabulary()
-        self.captions_list = self.captions_to_list()
-        self.num_of_images = len(self.images)
-        self.num_of_captions = len(self.captions_list)
-        self.num_of_vocab = len(self.vocab)
+        (train, validation, test) = self.split_dataset()
+        self.train_captions, self.train_images = train
+        self.validation_captions, self.validation_images = validation
+        self.test_captions, self.test_images = test
+        self.train_captions_list = self.captions_to_list(captions_dict=self.train_captions)
+        self.tokenizer = self.captions_tokenizer()
+        self.num_of_vocab = len(self.tokenizer.word_index) + 1
         self.max_seq_length = self.tallest_seq_length()
-    
-    def captions_to_vocabulary(self):
-        vocab = set()
-        for captions in self.captions.values():
-            [vocab.update(caption.split()) for caption in captions]
-        return vocab
-    
-    def captions_to_list(self):
+        
+    def captions_to_list(self, captions_dict=None):
         captions_list = []
-        for captions in self.captions.values():
+        if captions_dict is None:
+            captions_dict = self.captions
+        for captions in captions_dict.values():
             [captions_list.append(caption) for caption in captions]
         return captions_list
     
@@ -45,13 +59,43 @@ class DatasetProcessor(Dataset):
                 self.captions[name][i] = tokened
     
     def captions_tokenizer(self):
-        pass
+        tokenizer = Tokenizer(oov_token=1)
+        tokenizer.fit_on_texts(self.train_captions_list)
+        return tokenizer
     
+    def split_dataset(self):
+        train_captions, train_images, test_captions, test_images = {}, {}, {}, {}
+        validation_captions, validation_images = {}, {}
+        names = list(self.captions.keys())
+        np.random.shuffle(names)
+        train_index = self.num_of_train_images
+        validation_index = self.num_of_train_images + self.num_of_validation_images
+        for name in names[:train_index]:
+            train_captions[name] = self.captions[name]
+            train_images[name] = self.images[name]
+        for name in names[train_index:validation_index]:
+            validation_captions[name] = self.captions[name]
+            validation_images[name] = self.images[name]
+        for name in names[validation_index:]:
+            test_captions[name] = self.captions[name]
+            test_images[name] = self.images[name]
+        return (train_captions, train_images), (validation_captions, validation_images), (test_captions, test_images)
+
     def create_sequences(self):
         pass
     
     def tallest_seq_length(self):
-        return max(len(caption.split()) for caption in self.captions_list)
+        return max(len(caption.split()) for caption in self.train_captions_list)
     
     def load_photo_features(self):
         pass
+
+    def print_dataset_info(self):
+        print('------------DatasetProcessor Info------------')
+        print(f'Number of images: {self.num_of_samples}')
+        print(f'Number of training images: {self.num_of_train_images}')
+        print(f'Number of validaiton images: {self.num_of_validation_images}')
+        print(f'Number of test images: {self.num_of_samples - self.num_of_train_images - self.num_of_validation_images}')
+        print(f'Number of captions: {self.num_of_captions}')
+        print(f'Number of vocabulary: {self.num_of_vocab}')
+        print(f'Length of tallest sequence: {self.max_seq_length}')
