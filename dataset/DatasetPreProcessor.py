@@ -1,6 +1,6 @@
 import re
 import string
-from utils.Dataset import Dataset
+from dataset.Dataset import Dataset
 from nltk.corpus import words, wordnet, webtext, nps_chat, reuters
 from nltk.stem import WordNetLemmatizer
 

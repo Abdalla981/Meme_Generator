@@ -1,5 +1,5 @@
-from utils.DatasetPreProcessor import DatasetPreProcessor
-from utils.DatasetProcessor import DatasetProcessor
+from dataset.DatasetPreProcessor import DatasetPreProcessor
+from dataset.DatasetProcessor import DatasetProcessor
 
 '''
 This script loads the dataset and pre-processes it and writes the clean dataset captions to a new file.
@@ -18,8 +18,7 @@ if __name__ == '__main__':
     process_obj = DatasetProcessor(new_captions_path, images_path)
     process_obj.process_dataset()
     process_obj.print_dataset_info()
-    X1, X2, y = process_obj.create_sequences(captions_dict=process_obj.train_captions,
-                                                     images_dict=process_obj.train_images)
+    process_obj.print_sample_of_sequences()
     if input('Show a training images sample?(y/n) ') == 'y':
         process_obj.show_samples(captions_dict=process_obj.train_captions, 
                                  images_dict=process_obj.train_images)

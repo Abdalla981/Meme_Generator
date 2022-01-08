@@ -29,7 +29,7 @@ tf-coreml/.idea/
 *.o
 *.so
 *.npy
-__pycache__/*
+__pycache__/
 
 # Packages #
 ############

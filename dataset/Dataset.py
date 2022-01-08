@@ -1,6 +1,6 @@
 import os
 import random
-import utils.MemeDrawer as MemeDrawer
+import dataset.MemeDrawer as MemeDrawer
 from collections import Counter
 from PIL import Image
 '''
@@ -20,13 +20,13 @@ Methods:
 - get_vocabulary_counter: returns a counter of all vocabulary words
 '''
 class Dataset:
-    def __init__(self, captions_path, images_path):
+    def __init__(self, captions_path, images_path, image_features=False):
         self.image_path = images_path
         self.captions_path = captions_path
         self.captions, self.num_of_captions = self.load_captions()
-        self.images, self.not_found_images = self.load_images()
+        self.images, self.not_found_images = self.load_image_features() if image_features else self.load_images()
         assert(len(self.images) == len(self.captions))
-        self.num_of_samples = len(self.images)
+        self.num_of_samples = len(self.captions)
         
     def load_captions(self):
         data = {}
@@ -61,6 +61,9 @@ class Dataset:
             if image is None:
                 not_found.append((name, image_path))
         return data, not_found
+    
+    def load_image_features(self):
+        pass
     
     def get_captions_counter(self, captions_dict=None):
         if captions_dict is None:
