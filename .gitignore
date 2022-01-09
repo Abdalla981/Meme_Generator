@@ -1,17 +1,8 @@
-im2txt/train.tfrecords*
-im2txt/glove*
-im2txt/embedding_matrix*
-im2txt/trainlog*
-im2txt/bvlc_alexnet.npy
-im2txt/eval.tfrecords*
-MemeNote.ipynb
-venv/
-REAL_EMBEDDING_MATRIX
 *.pb
 *.mlmodel
 Notes/
 old_dataset/
-embedding/
+*.300d.txt
 
 tf-coreml/build/
 tf-coreml/dist/
