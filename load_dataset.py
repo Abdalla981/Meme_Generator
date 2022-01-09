@@ -8,14 +8,14 @@ The new dataset captions and corresponding images are loaded and their info is p
 if __name__ == '__main__':
     captions_path = 'dataset/Captions3.txt'
     images_path = 'embedding/efficientNet'
-    new_captions_path = 'dataset/CaptionsClean31.txt'
+    new_captions_path = 'dataset/CaptionsClean3.txt'
     
     if input('Clean Dataset?(y/n) ') == 'y':
-        prep_obj = CaptionsCleaning(captions_path)
-        prep_obj.clean_dataset()
-        prep_obj.save_captions_to_file(new_captions_path)
+        clean_obj = CaptionsCleaning(captions_path)
+        clean_obj.clean_dataset()
+        clean_obj.save_captions_to_file(new_captions_path)
     
-    process_obj = DatasetProcessor(new_captions_path, images_path, 'B2')
+    process_obj = DatasetProcessor(new_captions_path, images_path, 'B0')
     process_obj.process_dataset()
     process_obj.print_dataset_info()
     process_obj.print_sample_of_sequences()
