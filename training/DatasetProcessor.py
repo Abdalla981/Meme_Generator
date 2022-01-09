@@ -40,6 +40,7 @@ class DatasetProcessor(Dataset):
         self.split_value = split_value
         self.num_of_train_images = floor(self.num_of_samples * self.split_value[0])
         self.num_of_validation_images = floor(self.num_of_samples * self.split_value[1])
+        self.num_of_test_images = self.num_of_samples - (self.num_of_train_images + self.num_of_validation_images)
         self.tokenizer, self.num_of_vocab = None, None
         self.train_captions, self.train_images = None, None
         self.validation_captions, self.validation_images = None, None
@@ -161,7 +162,7 @@ class DatasetProcessor(Dataset):
         print(f'Number of images: {self.num_of_samples}')
         print(f'Number of training images: {self.num_of_train_images}')
         print(f'Number of validaiton images: {self.num_of_validation_images}')
-        print(f'Number of test images: {self.num_of_samples - self.num_of_train_images - self.num_of_validation_images}')
+        print(f'Number of test images: {self.num_of_test_images}')
         print(f'Number of captions: {self.num_of_captions}')
         print(f'Number of vocabulary: {self.num_of_vocab}')
         print(f'Dimension of glove embeddings: {self.glove_dims}')

@@ -28,11 +28,16 @@ if __name__ == '__main__':
         
         if input('Train?(y/n) ') == 'y':
             model_obj = MergeModel(model_folder_path, process_obj, init=True)  
-            generator = process_obj.data_generator(process_obj.train_captions, process_obj.train_images)
+            t_gen = process_obj.data_generator(process_obj.train_captions, 
+                                                         process_obj.train_images)
+            val_gen = process_obj.data_generator(process_obj.validation_captions, 
+                                                              process_obj.validation_images)
             # define checkpoint callback
             file_path = 'model-ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'
             path = os.path.join(model_folder_path, file_path)
             checkpoint = ModelCheckpoint(path, monitor='loss', verbose=1, save_best_only=True, mode='min')
             # fit model
-            steps = process_obj.num_of_samples
-            model_obj.model.fit(generator, epochs=10, steps_per_epoch=steps, verbose=1, callbacks=[checkpoint])
+            t_steps = process_obj.num_of_train_images
+            val_steps = process_obj.num_of_validation_images
+            model_obj.model.fit(t_gen, validation_data=val_gen, validation_steps=val_steps, 
+                                epochs=10, steps_per_epoch=t_steps, verbose=1, callbacks=[checkpoint])
