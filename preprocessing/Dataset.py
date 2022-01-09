@@ -146,7 +146,7 @@ class Dataset:
         for name, image in images_dict.item():
             image.save(os.path.join(new_images_path, name + '.jpg'))
             
-    def save_image_features_to_file(self, new_images_path:str=None, images_dict:dict=None) -> None:
+    def save_image_features_to_file(self, new_images_path:str, images_dict:dict=None) -> None:
         if new_images_path == self.image_path:
             raise ValueError('Can not write to same folder!')
         if images_dict is None:

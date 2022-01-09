@@ -20,9 +20,8 @@ class EfficientNet():
         'B6': [EfficientNetB6, 528],
         'B7': [EfficientNetB7, 600]
         }
-    def __init__(self, images_dir:str, output_dir:str='pickle', models_list:Tuple[str,...]=('B0',)) -> None:
+    def __init__(self, images_dir:str, models_list:Tuple[str,...]=('B0',)) -> None:
         self.images_dir = images_dir
-        self.output_dir = output_dir
         self.models = self.init_models(models_list)
         self.features = {name:{} for name in self.models}
         
@@ -49,9 +48,7 @@ class EfficientNet():
             init_models[model_name] = [model(include_top=False, pooling='avg', input_tensor=input_layer), size]
         return init_models
     
-    def save_features_to_file(self, output_dir:str=None) -> None:
-        if output_dir is None:
-            output_dir = self.output_dir
+    def save_features_to_file(self, output_dir: str) -> None:
         for name, features in self.features.items():
             features_path = os.path.join(output_dir, name + '.pkl')
             with open(features_path, 'wb') as f:

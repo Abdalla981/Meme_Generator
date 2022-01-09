@@ -49,7 +49,7 @@ class DatasetProcessor(Dataset):
         self.test_captions, self.test_images = test
         self.train_captions_list = self.captions_to_list(captions_dict=self.train_captions)
         self.tokenizer = self.captions_tokenizer()
-        self.num_of_vocab = len(self.tokenizer.word_index) + 1
+        self.num_of_vocab = len(self.tokenizer.word_index)
         self.max_seq_length = self.tallest_seq_length()
         
     def captions_to_list(self, captions_dict: dict=None) -> list:
