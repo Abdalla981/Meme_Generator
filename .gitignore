@@ -11,7 +11,7 @@ REAL_EMBEDDING_MATRIX
 *.mlmodel
 Notes/
 old_dataset/
-glove/
+embedding/
 
 tf-coreml/build/
 tf-coreml/dist/
