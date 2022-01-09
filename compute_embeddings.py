@@ -15,7 +15,7 @@ if __name__ == '__main__':
     not_found_word_file = 'embedding/glove/notFoundWords.txt'
     
     if input('Run EfficientNet?(y/n) ') == 'y':
-        image_embedding_obj = EfficientNet(images_folder, models_list=('B0', 'B2'))
+        image_embedding_obj = EfficientNet(images_folder, models_list=('B4', 'B6'))
         image_embedding_obj.extract_features()
         image_embedding_obj.save_features_to_file(images_output_folder)
         

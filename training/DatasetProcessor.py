@@ -32,6 +32,8 @@ class DatasetProcessor(Dataset):
         super().__init__(captions_path, images_path, image_embedding, glove_path)
         assert(len(self.captions) == len(self.images))
         self.num_of_samples = len(self.captions)
+        self.glove_dims = list(self.glove_embedding.values())[0].shape[0]
+        self.image_embedding_dims = list(self.images.values())[0].shape
         self.start_token = start_token
         self.end_token = end_token
         self.oov_token = oov_token
@@ -39,10 +41,10 @@ class DatasetProcessor(Dataset):
         self.num_of_train_images = floor(self.num_of_samples * self.split_value[0])
         self.num_of_validation_images = floor(self.num_of_samples * self.split_value[1])
         self.tokenizer, self.num_of_vocab = None, None
-        self.train_captions_list, self.max_seq_length = None, None
         self.train_captions, self.train_images = None, None
         self.validation_captions, self.validation_images = None, None
         self.test_captions, self.test_images = None, None
+        self.train_captions_list, self.max_seq_length = None, None
         
     def process_dataset(self) -> None:
         self.add_tokens_to_caption()
@@ -50,16 +52,14 @@ class DatasetProcessor(Dataset):
         self.train_captions, self.train_images = train
         self.validation_captions, self.validation_images = validation
         self.test_captions, self.test_images = test
-        self.train_captions_list = self.captions_to_list(captions_dict=self.train_captions)
+        self.train_captions_list = self.captions_to_list(self.train_captions)
         self.tokenizer = self.captions_tokenizer()
         self.num_of_vocab = len(self.tokenizer.word_index) + 1
         self.embedding_matrix = self.create_embedding_matrix()
-        self.max_seq_length = self.tallest_seq_length()
+        self.max_seq_length = self.tallest_seq_length(self.train_captions_list)
         
-    def captions_to_list(self, captions_dict: dict=None) -> list:
+    def captions_to_list(self, captions_dict: dict) -> list:
         captions_list = []
-        if captions_dict is None:
-            captions_dict = self.captions
         for captions in captions_dict.values():
             [captions_list.append(caption) for caption in captions]
         return captions_list
@@ -94,7 +94,7 @@ class DatasetProcessor(Dataset):
         return (train_captions, train_images), (validation_captions, validation_images), (test_captions, test_images)
     
     def create_embedding_matrix(self) -> Array:
-        embedding_matrix = np.zeros((self.num_of_vocab, 300))
+        embedding_matrix = np.zeros((self.num_of_vocab, self.glove_dims))
         words_mapping = self.tokenizer.word_index
         for word, index in words_mapping.items():
             embedding_vector = self.glove_embedding.get(word)
@@ -123,10 +123,11 @@ class DatasetProcessor(Dataset):
                 captions = captions_dict[name]
                 image = images_dict[name]
                 in_image, in_sequence, out_word = self.create_sequences(captions, image)
-                yield [in_image, in_sequence], out_word
+                out_word = np.expand_dims(out_word, 1)
+                yield ([in_image, in_sequence], out_word)
     
-    def tallest_seq_length(self) -> int:
-        return max(len(caption.split()) for caption in self.train_captions_list)
+    def tallest_seq_length(self, captions_list: dict) -> int:
+        return max(len(caption.split()) for caption in captions_list)
     
     def print_sample_of_sequences(self, captions_dict: dict=None, images_dict: dict=None, num: int=2) -> None:
         if captions_dict is None:
@@ -163,4 +164,7 @@ class DatasetProcessor(Dataset):
         print(f'Number of test images: {self.num_of_samples - self.num_of_train_images - self.num_of_validation_images}')
         print(f'Number of captions: {self.num_of_captions}')
         print(f'Number of vocabulary: {self.num_of_vocab}')
+        print(f'Dimension of glove embeddings: {self.glove_dims}')
+        print(f'Dimension of image embeddings: {self.image_embedding_dims}')
         print(f'Length of tallest sequence: {self.max_seq_length}')
+        
