@@ -1,4 +1,5 @@
 import numpy as np
+from pickle import load
 from ctypes import Array
 from typing import List, Tuple
 from math import floor
@@ -19,14 +20,16 @@ Methods:
 - split_dataset: splits the dataset into train, validation and test sets
 - create_sequences: creates an array of sequences (image, sequence[:i], next_word)
 - data_generator: uses progressive loading to create sequences for better memory manegment
+- create_embedding_matrix: creates embedding matrix for initializing the embedding layer later
 - print_sample_of_sequences: prints a number of captions in sequences using the generator
 - print_dataset_info: prints useful info on the loaded dataset
 '''
 
 class DatasetProcessor(Dataset):
-    def __init__(self, captions_path: str, images_path: str, image_embedding: str, start_token: str='startseq', 
-                 end_token: str='endseq', oov_token: str='[UNK]', split_value: tuple=(0.8, 0.1)) -> None:
-        super().__init__(captions_path, images_path, image_embedding)
+    def __init__(self, captions_path: str, images_path: str, image_embedding: str, glove_path: str,
+                 start_token: str='startseq', end_token: str='endseq', oov_token: str='[UNK]', 
+                 split_value: tuple=(0.8, 0.1)) -> None:
+        super().__init__(captions_path, images_path, image_embedding, glove_path)
         assert(len(self.captions) == len(self.images))
         self.num_of_samples = len(self.captions)
         self.start_token = start_token
@@ -49,7 +52,8 @@ class DatasetProcessor(Dataset):
         self.test_captions, self.test_images = test
         self.train_captions_list = self.captions_to_list(captions_dict=self.train_captions)
         self.tokenizer = self.captions_tokenizer()
-        self.num_of_vocab = len(self.tokenizer.word_index)
+        self.num_of_vocab = len(self.tokenizer.word_index) + 1
+        self.embedding_matrix = self.create_embedding_matrix()
         self.max_seq_length = self.tallest_seq_length()
         
     def captions_to_list(self, captions_dict: dict=None) -> list:
@@ -88,6 +92,15 @@ class DatasetProcessor(Dataset):
             test_captions[name] = self.captions[name]
             test_images[name] = self.images[name]
         return (train_captions, train_images), (validation_captions, validation_images), (test_captions, test_images)
+    
+    def create_embedding_matrix(self) -> Array:
+        embedding_matrix = np.zeros((self.num_of_vocab, 300))
+        words_mapping = self.tokenizer.word_index
+        for word, index in words_mapping.items():
+            embedding_vector = self.glove_embedding.get(word)
+            if embedding_vector is not None:
+                embedding_matrix[index] = embedding_vector
+        return embedding_matrix
 
     def create_sequences(self, captions: list, image: Array) -> Tuple[Array, Array, Array]:
         X1, X2, y = [], [], []
@@ -95,14 +108,14 @@ class DatasetProcessor(Dataset):
             sequence = self.tokenizer.texts_to_sequences([caption])[0]
             for i in range(1, len(sequence)):
                 in_sequence, out_word = sequence[:i], sequence[i]
-                in_sequence = pad_sequences([in_sequence], maxlen=self.max_seq_length)[0]
+                in_sequence = pad_sequences([in_sequence], padding='post', truncating='post', maxlen=self.max_seq_length)[0]
                 out_word = to_categorical([out_word], num_classes=self.num_of_vocab)[0]
                 X1.append(image)
                 X2.append(in_sequence)
                 y.append(out_word)
         return np.array(X1), np.array(X2), np.array(y)
     
-    def data_generator(self, captions_dict, images_dict) -> Tuple[List[Array], Array]:
+    def data_generator(self, captions_dict: dict, images_dict: dict) -> Tuple[List[Array], Array]:
         while 1:
             names = list(captions_dict.keys())
             np.random.shuffle(names)
