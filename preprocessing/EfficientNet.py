@@ -9,6 +9,17 @@ from keras.applications.efficientnet import EfficientNetB2, EfficientNetB3, Effi
 from keras.applications.efficientnet import EfficientNetB6, EfficientNetB7
 from keras.preprocessing.image import load_img, img_to_array
 
+'''
+This class pre-computes the image features using efficeintnet models. A tuple of desired models is
+needed and the corresponding models are initialized to extraxt image features.
+
+Methods:
+- extract_features: loads the images from folder and uses the initilized models to extract the 
+features (embeddings) and saves it to a dictionary.
+- init_models: initializes the models based on the tuple of desired models passed to the constructor
+- save_features_to_file: saves the features to file (one file per model)
+'''
+
 class EfficientNet():
     models_mapping = {
         'B0': [EfficientNetB0, 224],
@@ -20,12 +31,12 @@ class EfficientNet():
         'B6': [EfficientNetB6, 528],
         'B7': [EfficientNetB7, 600]
         }
-    def __init__(self, images_dir:str, models_list:Tuple[str,...]=('B0',)) -> None:
+    def __init__(self, images_dir: str, models_list: Tuple[str,...]=('B0',)) -> None:
         self.images_dir = images_dir
         self.models = self.init_models(models_list)
         self.features = {name:{} for name in self.models}
         
-    def extract_features(self) -> Dict[str, Dict[str, array]]:
+    def extract_features(self) -> None:
         images = [image for image in os.listdir(self.images_dir) if image.endswith('.jpg')]
         for i, image_file in enumerate(images):
             image_path = os.path.join(self.images_dir, image_file)
@@ -39,7 +50,7 @@ class EfficientNet():
                 self.features[name][image_name] = feature
             print(f'{i}. {image_name} done!')
           
-    def init_models(self, models_list:tuple) -> dict:
+    def init_models(self, models_list: tuple) -> dict:
         init_models = {}
         for model_name in models_list:
             model = EfficientNet.models_mapping[model_name][0]

@@ -13,27 +13,34 @@ Images are stored as a dictionary of {image_name: pillow_image_object}
 
 Methods:
 - get_captions_counter: returns the number of samples per image_name as a collection counter
+- get_vocabulary_counter: returns a counter of all vocabulary words
 - load_captions: loads the captions from txt file into a dictionary
 - load_image: loads image from folder using the name parameter and image_path variable
 - load_images: iterates over captions to load the correpsponding images using load_image method
 - load_image_embeddings: loads the image embeddings and returns only the embeddings of images that have caption
+- load_glove_embedding: loads the glove embeddings dictionary from file
 - show_samples: randomly selects images and writes a corresponding caption on them using MemeDrawer.py
 - save_captions_to_file: saves the captions to a new file
 - save_images_to_folder: saves the images to a new folder
-- get_vocabulary_counter: returns a counter of all vocabulary words
+- save_image_features_to_file: saves image embeddings to a file
 '''
 
 class Dataset:
-    def __init__(self, captions_path:str=None, images_path:str=None, image_embedding:str=None) -> None:
+    def __init__(self, captions_path: str=None, images_path: str=None, image_embedding: str=None, 
+                 glove_path: str=None) -> None:
         self.image_path = images_path
         self.captions_path = captions_path
         self.image_embedding = image_embedding
+        self.glove_path = glove_path
         self.captions, self.num_of_captions = None, None
         self.images, self.not_found_images = None, None
+        self.glove_embedding = None
         if captions_path is not None:
             self.captions, self.num_of_captions = self.load_captions()
         if images_path is not None:
             self.images, self.not_found_images = self.load_images() if image_embedding is None else self.load_image_embeddings()
+        if glove_path is not None:
+            self.glove_embedding = self.load_glove_embedding(glove_path)
         
     def load_captions(self) -> Tuple[dict, int]:
         data = {}
@@ -52,7 +59,7 @@ class Dataset:
                 num_of_captions += 1
         return data, num_of_captions
 
-    def load_image(self, name:str) -> Tuple[Image.Image, str]:
+    def load_image(self, name: str) -> Tuple[Image.Image, str]:
         if not os.path.exists(self.image_path):
             raise FileNotFoundError(self.image_path)
         image_path = os.path.join(self.image_path, name + '.jpg')
@@ -84,8 +91,14 @@ class Dataset:
             else:
                 not_found.append(name)
         return image_features, not_found
+    
+    def load_glove_embedding(self, glove_path: str) -> dict:
+        glove_embeddings = {}
+        with open(glove_path, 'rb') as f:
+            glove_embeddings = load(f)
+        return glove_embeddings
         
-    def get_captions_counter(self, captions_dict:dict=None) -> Counter:
+    def get_captions_counter(self, captions_dict: dict=None) -> Counter:
         if captions_dict is None:
             captions_dict = self.captions
         dataset_ditsribution = {
@@ -93,7 +106,7 @@ class Dataset:
         counter = Counter(dataset_ditsribution)
         return counter
     
-    def get_vocabulary_counter(self, captions_dict:dict=None) -> Counter:
+    def get_vocabulary_counter(self, captions_dict: dict=None) -> Counter:
         if captions_dict is None:
             captions_dict = self.captions
         words = []
@@ -102,8 +115,8 @@ class Dataset:
         vocab = Counter(words)
         return vocab
 
-    def show_samples(self, images_dict:dict=None, captions_dict:dict=None, num:int=5, 
-                     color:Tuple[int, int, int]=(255, 255, 255), output_file_path:dict=None) -> None:
+    def show_samples(self, images_dict: dict=None, captions_dict: dict=None, num: int=5, 
+                     color: Tuple[int, int, int]=(255, 255, 255), output_file_path: dict=None) -> None:
         if images_dict is None:
             images_dict = self.images
         if captions_dict is None:
@@ -127,7 +140,7 @@ class Dataset:
                 if output_file_path is not None:
                     img.save(os.path.join(output_file_path, name + '.jpg'))
 
-    def save_captions_to_file(self, new_captions_path:str, captions_dict:dict=None) -> None:
+    def save_captions_to_file(self, new_captions_path: str, captions_dict: dict=None) -> None:
         if new_captions_path == self.captions_path:
             raise ValueError('Can not write to same file!')
         if captions_dict is None:
@@ -138,7 +151,7 @@ class Dataset:
                 caption_file.write(f'{name} - {caption}\n')
         caption_file.close()
         
-    def save_images_to_folder(self, new_images_path:str, images_dict:dict=None) -> None:
+    def save_images_to_folder(self, new_images_path: str, images_dict: dict=None) -> None:
         if new_images_path == self.image_path:
             raise ValueError('Can not write to same folder!')
         if images_dict is None:
@@ -148,11 +161,10 @@ class Dataset:
             
     def save_image_features_to_file(self, new_images_path:str, images_dict:dict=None) -> None:
         if new_images_path == self.image_path:
-            raise ValueError('Can not write to same folder!')
+            raise ValueError('Can not write to same file!')
         if images_dict is None:
             images_dict = self.images
-        for name, features in images_dict.items():
-            features_path = os.path.join(new_images_path, name + '-dataset.pkl')
-            with open(features_path, 'wb') as f:
-                dump(features, f)
+        features_path = os.path.join(new_images_path, self.image_embedding + '-dataset.pkl')
+        with open(features_path, 'wb') as f:
+            dump(images_dict, f)
             

@@ -13,14 +13,13 @@ Mehtods:
 and removing leading and trailing spaces.
 - remove_non_english_words: removes non-english captions using a text corpus from nltk
 (words, wordnet, webtext, nps_chat, reuters)
-- remove_missing_images: removes images corresponding captions if the image is not found
-- remove_captions_with_non_standard_characters: removes captions that have non-lating letter
+- remove_captions_with_non_standard_characters: removes captions that have non-latin letters
 - remove_duplicate_captions: remove duplicated captions per image
 - remove_low_captioned_images: removes images and corresponding captions if the number of captions is low
 - remove_very_long_and_short_captions: removes very long and very short captions
 - check_rare_words: accepts a caption and vocabulary counter and returns true if too many rare words
 are present. Otherwise, it returns false.
-- remove_captions_with_rare_words: removes captions with too many rare words. It uses check_rare_words.
+- remove_captions_with_rare_words: removes captions with too many rare words.
 - clean_dataset: calls all the above methods
 '''
 
