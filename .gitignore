@@ -2,6 +2,8 @@
 *.mlmodel
 Notes/
 old_dataset/
+Meme_drawer/
+model/
 *.300d.txt
 
 tf-coreml/build/
