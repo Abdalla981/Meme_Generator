@@ -7,6 +7,18 @@ from tensorflow.keras.initializers import Constant
 from keras.models import Model
 from training.DatasetProcessor import DatasetProcessor
 
+'''
+This class implements a merge model for image captioning. It requires a DatasetProcessor object
+to initialize the model architecture. The number of neurons in the 2 Dense layers and LSTM (256) is
+arbitrary.
+
+Methods:
+- load_model_from_file: loads model from file using model_folder and model_name
+- define_model_architecture: defines the model architecture using the DatasetProcessor object
+- print_model_summary: prints the model summary and plot in the model folder
+- save_model_to_folder: saves the model to folder
+'''
+
 class MergeModel():
     def __init__(self, model_folder: str, dp_obj: DatasetProcessor, 
                  init: bool=True, model_name: str=None) -> None:

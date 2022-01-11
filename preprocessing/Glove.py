@@ -1,7 +1,7 @@
 import numpy as np
 from pickle import dump
 from typing import Tuple
-from preprocessing.Dataset import Dataset
+from training.Dataset import Dataset
 
 '''
 This class loads all the glove embeddings and saves the embeddings for the vocabulary in the captions

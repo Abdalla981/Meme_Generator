@@ -15,6 +15,7 @@ Images are stored as a dictionary of {image_name: pillow_image_object}
 Methods:
 - get_captions_counter: returns the number of samples per image_name as a collection counter
 - get_vocabulary_counter: returns a counter of all vocabulary words
+- captions_to_list: returns a list of all captions
 - load_captions: loads the captions from txt file into a dictionary
 - load_image: loads image from folder using the name parameter and image_path variable
 - load_images: iterates over captions to load the correpsponding images using load_image method
