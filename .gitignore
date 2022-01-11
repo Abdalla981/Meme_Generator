@@ -3,7 +3,7 @@
 Notes/
 old_dataset/
 Meme_drawer/
-model/
+models/
 *.300d.txt
 
 tf-coreml/build/

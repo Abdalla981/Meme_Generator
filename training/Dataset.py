@@ -5,6 +5,7 @@ from collections import Counter
 from PIL import Image
 from typing import Tuple
 from pickle import load, dump
+
 '''
 This is a dataset class to load the captions and images from file
 
@@ -40,7 +41,7 @@ class Dataset:
         if images_path is not None:
             self.images, self.not_found_images = self.load_images() if image_embedding is None else self.load_image_embeddings()
         if glove_path is not None:
-            self.glove_embedding = self.load_glove_embedding(glove_path)
+            self.glove_embedding = self.load_glove_embedding()
         
     def load_captions(self) -> Tuple[dict, int]:
         data = {}
@@ -60,16 +61,22 @@ class Dataset:
         return data, num_of_captions
 
     def load_image(self, name: str) -> Tuple[Image.Image, str]:
-        if not os.path.exists(self.image_path):
-            raise FileNotFoundError(self.image_path)
         image_path = os.path.join(self.image_path, name + '.jpg')
         image = Image.open(image_path) if os.path.exists(image_path) else None
-        return image, image_path
+        image2 = image.copy()
+        image.close()
+        return image2, image_path
 
     def load_images(self) -> Tuple[dict, list]:
+        if not os.path.exists(self.image_path):
+            raise FileNotFoundError(self.image_path)
         data = {}
         not_found = []
-        for name in self.captions:
+        if self.captions is None:
+            names = [name.split('.')[0] for name in os.listdir(self.image_path)]
+        else:
+            names = list(self.captions.keys())
+        for name in names:
             image, image_path = self.load_image(name)
             data[name] = image
             if image is None:
@@ -92,9 +99,9 @@ class Dataset:
                 not_found.append(name)
         return image_features, not_found
     
-    def load_glove_embedding(self, glove_path: str) -> dict:
+    def load_glove_embedding(self) -> dict:
         glove_embeddings = {}
-        with open(glove_path, 'rb') as f:
+        with open(self.glove_path, 'rb') as f:
             glove_embeddings = load(f)
         return glove_embeddings
         
@@ -114,6 +121,14 @@ class Dataset:
          for captions in captions_dict.values() for caption in captions]
         vocab = Counter(words)
         return vocab
+    
+    def captions_to_list(self, captions_dict: dict=None) -> list:
+        if captions_dict is None:
+            captions_dict = self.captions
+        captions_list = []
+        for captions in captions_dict.values():
+            [captions_list.append(caption) for caption in captions]
+        return captions_list
 
     def show_samples(self, images_dict: dict=None, captions_dict: dict=None, num: int=5, 
                      color: Tuple[int, int, int]=(255, 255, 255), output_file_path: dict=None) -> None:

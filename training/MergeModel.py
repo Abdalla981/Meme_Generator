@@ -5,18 +5,20 @@ from keras.utils.vis_utils import plot_model
 from keras.layers import Dense, LSTM, Dropout, Input, Embedding, add
 from tensorflow.keras.initializers import Constant
 from keras.models import Model
-
 from training.DatasetProcessor import DatasetProcessor
 
 class MergeModel():
-    def __init__(self, model_folder: str, dp_obj: DatasetProcessor, init: bool=True) -> None:
+    def __init__(self, model_folder: str, dp_obj: DatasetProcessor, 
+                 init: bool=True, model_name: str=None) -> None:
         self.model_folder = model_folder
+        self.model_name = model_name
         self.init = init
         self.dp_obj = dp_obj
-        self.model = self.define_model_architecture() if init else self.load_model_from_folder()
+        self.model = self.define_model_architecture() if init else self.load_model_from_file()
         
-    def load_model_from_folder(self) -> Model:
-        model = load_model(self.model_folder)
+    def load_model_from_file(self) -> Model:
+        path = os.path.join(self.model_folder, self.model_name)
+        model = load_model(path)
         return model
         
     def define_model_architecture(self) -> Model:
@@ -47,10 +49,5 @@ class MergeModel():
         plot_model(self.model, to_file=path, show_shapes=True)
         print(self.model.summary())
         
-    def save_model_to_folder(self, new_model_folder: str=None) -> None:
-        if new_model_folder is None:
-            if self.init:
-                new_model_folder = self.model_folder
-            else:
-                raise ValueError(f'Model folder path not passed!')
-        self.model.save(new_model_folder, overwrite=False)
+    def save_model_to_folder(self, new_model_path: str) -> None:
+        self.model.save(new_model_path, overwrite=False)
