@@ -1,6 +1,7 @@
 import os
 from training.DatasetProcessor import DatasetProcessor
 from training.MergeModel import MergeModel
+from training.InjectModel import InjectModel
 from keras.callbacks import ModelCheckpoint
 
 '''
@@ -33,7 +34,10 @@ if __name__ == '__main__':
         val_steps = val_dp_obj.num_of_samples
         
         # Load Model
-        model_obj = MergeModel(model_folder_path, train_dp_obj, init=True)  
+        if input('Merge model?(y/n) ') == 'y':
+            model_obj = InjectModel(model_folder_path, train_dp_obj, init=True)  
+        else:
+            model_obj = MergeModel(model_folder_path, train_dp_obj, init=True)  
         # define checkpoint callback
         file_path = 'model-ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'
         path = os.path.join(model_folder_path, file_path)
