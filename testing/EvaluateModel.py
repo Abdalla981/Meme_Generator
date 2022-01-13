@@ -80,10 +80,12 @@ class EvaluateModel():
             candidates = []
             end = 0
             for caption, score in sequences:
-                if caption.split()[-1] == self.dp_obj.end_token or len(caption.split()) >= max_seq_length:
+                if caption.split()[-1] == self.dp_obj.end_token:    # if caption reached end
                     c = (caption, score)
                     candidates.append(c)
                     end += 1
+                elif len(caption.split()) >= max_seq_length:    # ignore captions that are too long
+                    continue
                 else:
                     seq = self.dp_obj.tokenizer.texts_to_sequences([caption])[0]
                     seq = pad_sequences([seq], padding='post', truncating='post', maxlen=max_seq_length)[0]
