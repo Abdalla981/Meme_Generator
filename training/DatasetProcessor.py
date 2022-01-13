@@ -31,7 +31,7 @@ class DatasetProcessor(Dataset):
         assert(len(self.captions) == len(self.images))
         self.num_of_samples = len(self.captions)
         self.glove_dims = list(self.glove_embedding.values())[0].shape[0]
-        self.image_embedding_dims = list(self.images.values())[0].shape
+        self.image_embedding_dims = list(self.images.values())[0].shape[1]
         self.start_token = start_token
         self.end_token = end_token
         self.oov_token = oov_token
@@ -76,9 +76,8 @@ class DatasetProcessor(Dataset):
             np.random.shuffle(names)
             for name in names:
                 captions = self.captions[name]
-                image = self.images[name]
+                image = np.squeeze(self.images[name])
                 in_image, in_sequence, out_word = self.create_sequences(captions, image)
-                out_word = np.expand_dims(out_word, 1)
                 yield ([in_image, in_sequence], out_word)
     
     def tallest_seq_length(self, captions_list: dict) -> int:
