@@ -1,6 +1,7 @@
 import os
-from math import log10
 import numpy as np
+import json
+from math import log10
 from typing import Tuple, List
 from keras.preprocessing.sequence import pad_sequences
 from nltk.translate.bleu_score import corpus_bleu
@@ -56,7 +57,6 @@ class EvaluateModel():
     def greedy_search(self, image) -> str:
         in_text = self.dp_obj.start_token
         max_seq_length = self.dp_obj.max_seq_length
-        image = np.expand_dims(image, 0)
         for i in range(max_seq_length):
             sequence = self.dp_obj.tokenizer.texts_to_sequences([in_text])[0]
             sequence = pad_sequences([sequence], padding='post', truncating='post', maxlen=max_seq_length)[0]
@@ -74,18 +74,14 @@ class EvaluateModel():
     def beam_search(self, image) -> Tuple[str, int]:
         sequences = [(self.dp_obj.start_token, 0.0)]
         max_seq_length = self.dp_obj.max_seq_length
-        image = np.expand_dims(image, 0)
         end = 0
         while end < self.k:
             candidates = []
             end = 0
             for caption, score in sequences:
-                if caption.split()[-1] == self.dp_obj.end_token:    # if caption reached end
-                    c = (caption, score)
-                    candidates.append(c)
+                if caption.split()[-1] == self.dp_obj.end_token or len(caption.split()) >= max_seq_length:    # if caption reached end
+                    candidates.append((caption, score))
                     end += 1
-                elif len(caption.split()) >= max_seq_length:    # ignore captions that are too long
-                    continue
                 else:
                     seq = self.dp_obj.tokenizer.texts_to_sequences([caption])[0]
                     seq = pad_sequences([seq], padding='post', truncating='post', maxlen=max_seq_length)[0]
@@ -96,9 +92,8 @@ class EvaluateModel():
                         if index == 0:  # ignore padding
                             continue
                         word = self.dp_obj.tokenizer.index_word.get(index)
-                        c = (caption + ' ' + word, score - log10(prob))
-                        candidates.append(c)
-            ordered_candidates = sorted(candidates, key=lambda tup:tup[1])
+                        candidates.append((caption + ' ' + word, score + log10(prob)))
+            ordered_candidates = sorted(candidates, key=lambda tup:tup[1], reverse=True)
             sequences = ordered_candidates[:self.k]
         return sequences[0]
     
@@ -123,8 +118,19 @@ class EvaluateModel():
                 if output_folder_path is not None:
                     img.save(os.path.join(output_folder_path, name + '.jpg'))
         
-    def print_evaluation(self) -> None:
-        print('BLEU-1: %f' % corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(1.0, 0, 0, 0)))
-        print('BLEU-2: %f' % corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(0.5, 0.5, 0, 0)))
-        print('BLEU-3: %f' % corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(0.3, 0.3, 0.3, 0)))
-        print('BLEU-4: %f' % corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(0.25, 0.25, 0.25, 0.25)))
+    def save_evaluation(self) -> None:
+        b1 = corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(1.0, 0, 0, 0))
+        b2 = corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(0.5, 0.5, 0, 0))
+        b3 = corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(0.3, 0.3, 0.3, 0))
+        b4 = corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(0.25, 0.25, 0.25, 0.25))
+        result_str = f'BLEU-1: {b1}\nBLEU-2: {b2}\nBLEU-3: {b3}\nBLEU-4: {b4}\n'
+        print(result_str)
+        f_path = os.path.join(self.model_obj.model_folder, 'BLEU_result.txt')
+        with open(f_path, 'w') as f:
+            f.write(result_str)
+            
+    def save_captions(self) -> None:
+        f_path = os.path.join(self.model_obj.model_folder, 'generated_captions.json')
+        with open(f_path, 'w') as f:
+            json.dump(self.gen_captions, f)
+            
