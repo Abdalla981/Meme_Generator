@@ -89,7 +89,7 @@ class EvaluateModel():
                     y = self.model_obj.model([image, seq], training=False)
                     y = np.array(y).flatten()
                     for index, prob in enumerate(y):
-                        if index == 0:  # ignore padding
+                        if index == 0 or prob == 0:  # ignore padding and prob of 0
                             continue
                         word = self.dp_obj.tokenizer.index_word.get(index)
                         candidates.append((caption + ' ' + word, score + log10(prob)))
