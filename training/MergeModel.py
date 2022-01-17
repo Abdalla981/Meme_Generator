@@ -1,5 +1,4 @@
 import os
-from ctypes import Array
 from keras.models import load_model
 from keras.utils.vis_utils import plot_model
 from keras.layers import Dense, LSTM, Dropout, Input, Embedding, BatchNormalization, Concatenate
@@ -38,20 +37,19 @@ class MergeModel():
         # image embedding encoder
         inputs1 = Input(shape=self.dp_obj.image_embedding_dims)
         ie0 = BatchNormalization()(inputs1)
-        ie1 = Dense(128, kernel_initializer=RandomNormal(mean=0, stddev=0.03),
-                    kernel_regularizer=L2(l2=10**-8))(ie0)
+        ie1 = Dense(128, kernel_initializer=RandomNormal(mean=0, stddev=0.03), activation='relu')(ie0)
         
         # text embedding encoder
         inputs2 = Input(shape=(self.dp_obj.max_seq_length,))
         te1 = Embedding(self.dp_obj.num_of_vocab, self.dp_obj.glove_dims, 
                         embeddings_initializer=Constant(self.dp_obj.embedding_matrix), 
                         mask_zero=True)(inputs2)
-        te3 = LSTM(128, dropout=0.5, kernel_regularizer=L2(l2=10**-8),
-                   kernel_initializer=RandomNormal(mean=0, stddev=0.03))(te1)
+        te3 = LSTM(128, dropout=0.5, kernel_initializer=RandomNormal(mean=0, stddev=0.03))(te1)
         
         # decoder
         d1 = Concatenate()([ie1, te3])
-        ouputs = Dense(self.dp_obj.num_of_vocab, activation='softmax')(d1)
+        d2 = Dense(128, activation='relu')(d1)
+        ouputs = Dense(self.dp_obj.num_of_vocab, activation='softmax')(d2)
         
         model = Model(inputs=[inputs1, inputs2], outputs=ouputs)
         model.compile(loss='categorical_crossentropy', optimizer='adam')

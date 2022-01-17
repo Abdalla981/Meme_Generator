@@ -1,11 +1,9 @@
 import os
 from tensorflow import tile, expand_dims
 from ctypes import Array
-from keras.backend import mean
-from keras.engine import training
-from keras.layers.advanced_activations import Softmax
 from keras.models import load_model
 from keras.utils.vis_utils import plot_model
+from keras.regularizers import L2
 from keras.layers import Dense, LSTM, Dropout, Input, Embedding, add, Concatenate, BatchNormalization
 from tensorflow.keras.initializers import Constant, RandomNormal
 from keras.models import Model
