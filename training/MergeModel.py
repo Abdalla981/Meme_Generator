@@ -1,7 +1,7 @@
 import os
 from keras.models import load_model
 from keras.utils.vis_utils import plot_model
-from keras.layers import Dense, LSTM, Dropout, Input, Embedding, BatchNormalization, Concatenate
+from keras.layers import Dense, LSTM, Dropout, Input, Embedding, LayerNormalization, Concatenate
 from keras.regularizers import L2
 from tensorflow.keras.initializers import Constant, RandomNormal
 from keras.models import Model
@@ -36,7 +36,7 @@ class MergeModel():
     def define_model_architecture(self) -> Model:
         # image embedding encoder
         inputs1 = Input(shape=self.dp_obj.image_embedding_dims)
-        ie0 = BatchNormalization()(inputs1)
+        ie0 = LayerNormalization()(inputs1)
         ie1 = Dense(128, kernel_initializer=RandomNormal(mean=0, stddev=0.03), activation='relu')(ie0)
         
         # text embedding encoder
