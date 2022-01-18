@@ -35,9 +35,9 @@ if __name__ == '__main__':
         
         # Load Model
         if input('Merge model?(y/n) ') == 'y':
-            model_obj = InjectModel(model_folder_path, train_dp_obj, init=True)  
-        else:
             model_obj = MergeModel(model_folder_path, train_dp_obj, init=True)  
+        else:
+            model_obj = InjectModel(model_folder_path, train_dp_obj, init=True)  
         # define checkpoint callback
         file_path = 'model-ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'
         path = os.path.join(model_folder_path, file_path)
