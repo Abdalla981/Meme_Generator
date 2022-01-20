@@ -1,8 +1,9 @@
 import os
 import numpy as np
 import json
-from math import log10
-from typing import Tuple, List
+from math import log2
+from typing import Tuple
+from tensorflow import reshape as tf_reshape
 from keras.preprocessing.sequence import pad_sequences
 from nltk.translate.bleu_score import corpus_bleu
 from training.MergeModel import MergeModel
@@ -22,7 +23,7 @@ Methods:
 the reference captions of that image for BLEU score later
 - generate_caption: generates a caption using an image (embedding)
 - show_generated_examples: shows (and saves) sample images with generated captions
-- print_evaluation: prints BLEU scores
+- save_BLEU_evaluation: prints BLEU scores and saves it to a file
 '''
 
 class EvaluateModel():
@@ -36,9 +37,9 @@ class EvaluateModel():
         if eval != 'beam' and eval != 'greedy':
             raise ValueError(f'eval parameter should be either "greedy" or "beam"!')
         self.true_images = Dataset(images_path=images_path).images
-        self.og_captions, self.gen_captions = self.evaluate_model()
+        self.og_captions, self.gen_captions = self.generate_captions()
         
-    def evaluate_model(self) -> Tuple[list, dict]:
+    def generate_captions(self) -> Tuple[list, dict]:
         og_captions, gen_captions = [], {}
         names = list(self.dp_obj.captions.items())
         np.random.shuffle(names)
@@ -50,7 +51,7 @@ class EvaluateModel():
                 gen_c = self.greedy_search(image)
             refrences = [caption.split() for caption in captions]
             og_captions.append(refrences)
-            gen_captions[name] = gen_c[0].split()
+            gen_captions[name] = gen_c.split()
             print(f'{i}. {name}')
         return og_captions, gen_captions
             
@@ -73,29 +74,30 @@ class EvaluateModel():
     
     def beam_search(self, image) -> Tuple[str, int]:
         sequences = [(self.dp_obj.start_token, 0.0)]
-        max_seq_length = self.dp_obj.max_seq_length
+        max_seq = self.dp_obj.max_seq_length
         end = 0
         while end < self.k:
             candidates = []
             end = 0
             for caption, score in sequences:
-                if caption.split()[-1] == self.dp_obj.end_token or len(caption.split()) >= max_seq_length:    # if caption reached end
+                if caption.split()[-1] == self.dp_obj.end_token or len(caption.split()) >= max_seq:    # if caption reached end
                     candidates.append((caption, score))
                     end += 1
                 else:
                     seq = self.dp_obj.tokenizer.texts_to_sequences([caption])[0]
-                    seq = pad_sequences([seq], padding='post', truncating='post', maxlen=max_seq_length)[0]
-                    seq = np.expand_dims(seq, 0)
+                    seq = pad_sequences([seq], padding='post', truncating='post', maxlen=max_seq)[0]
+                    seq = seq.reshape((1, -1))
                     y = self.model_obj.model([image, seq], training=False)
-                    y = np.array(y).flatten()
-                    for index, prob in enumerate(y):
+                    y = tf_reshape(y, [-1])
+                    best_probs = np.argsort(y)[-self.k:]
+                    for index in best_probs:
+                        prob = y[index]
                         if index == 0 or prob == 0:  # ignore padding and prob of 0
                             continue
                         word = self.dp_obj.tokenizer.index_word.get(index)
-                        candidates.append((caption + ' ' + word, score + log10(prob)))
-            ordered_candidates = sorted(candidates, key=lambda tup:tup[1], reverse=True)
-            sequences = ordered_candidates[:self.k]
-        return sequences[0]
+                        candidates.append((caption + ' ' + word, score + log2(prob)))
+            sequences = sorted(candidates, key=lambda tup:tup[1])[-self.k:]
+        return sequences[-1][0]
     
     def show_generated_examples(self, num: int=5, color: Tuple[int, int, int]=(255, 255, 255), 
                                 output_folder_path: dict=None) -> None:
@@ -118,7 +120,7 @@ class EvaluateModel():
                 if output_folder_path is not None:
                     img.save(os.path.join(output_folder_path, name + '.jpg'))
         
-    def save_evaluation(self) -> None:
+    def save_BLEU_evaluation(self) -> None:
         b1 = corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(1.0, 0, 0, 0))
         b2 = corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(0.5, 0.5, 0, 0))
         b3 = corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(0.3, 0.3, 0.3, 0))
@@ -128,7 +130,7 @@ class EvaluateModel():
         f_path = os.path.join(self.model_obj.model_folder, 'BLEU_result.txt')
         with open(f_path, 'w') as f:
             f.write(result_str)
-            
+    
     def save_captions(self) -> None:
         f_path = os.path.join(self.model_obj.model_folder, 'generated_captions.json')
         with open(f_path, 'w') as f:
