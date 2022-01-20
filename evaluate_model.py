@@ -25,6 +25,6 @@ if __name__ == '__main__':
         model_obj = MergeModel(model_folder_path, test_dp_obj, init=False, model_name=model_name)
         eval_obj = EvaluateModel(model_obj, images_path, k=5, num=25)
         eval_obj.save_captions()
-        eval_obj.save_evaluation()
+        eval_obj.save_BLEU_evaluation()
         eval_obj.show_generated_examples(output_folder_path=gen_output, num=20)
         

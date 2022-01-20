@@ -2,7 +2,7 @@ import os
 from training.DatasetProcessor import DatasetProcessor
 from training.MergeModel import MergeModel
 from training.InjectModel import InjectModel
-from keras.callbacks import ModelCheckpoint
+from training.CustomCallback import CustomCallback
 
 '''
 This script trains the model using the train and validation captions files. The training can be done
@@ -14,7 +14,8 @@ if __name__ == '__main__':
     train_captions_path = 'dataset/CaptionsClean3_train.txt'
     val_captions_path = 'dataset/CaptionsClean3_validation.txt'
     embeddings_path = 'embedding/glove/captionsGlove.pkl'
-    model_folder_path = 'models/mergeModel'
+    model_folder_path = 'models/Test'
+    batch_size = 1
 
     if input('Train?(y/n) ') == 'y':
         train_dp_obj = DatasetProcessor(train_captions_path, images_path, 'B0', embeddings_path)
@@ -28,20 +29,17 @@ if __name__ == '__main__':
             
         val_dp_obj = DatasetProcessor(val_captions_path, images_path, 'B0', embeddings_path)
         val_dp_obj.process_dataset(captions_list)
-        t_gen = train_dp_obj.data_generator()
-        val_gen = val_dp_obj.data_generator()
-        t_steps = train_dp_obj.num_of_samples
-        val_steps = val_dp_obj.num_of_samples
+        t_gen = train_dp_obj.data_generator(batch_size)
+        val_gen = val_dp_obj.data_generator(batch_size)
+        t_steps = (train_dp_obj.num_of_captions // batch_size) + 1
+        val_steps = (val_dp_obj.num_of_captions // batch_size) + 1
         
-        # Load Model
-        if input('Merge model?(y/n) ') == 'y':
-            model_obj = MergeModel(model_folder_path, train_dp_obj, init=True)  
-        else:
-            model_obj = InjectModel(model_folder_path, train_dp_obj, init=True)  
+        model_obj = MergeModel(model_folder_path, train_dp_obj, init=True)
+        model_obj.print_model_summary()
         # define checkpoint callback
-        file_path = 'model-ep{epoch:03d}-loss{loss:.3f}-val_loss{val_loss:.3f}.h5'
+        file_path = 'test-model'
         path = os.path.join(model_folder_path, file_path)
-        checkpoint = ModelCheckpoint(path, monitor='val_loss', verbose=1, save_best_only=True, mode='min')
+        checkpoint = CustomCallback(path)
         # fit model
         model_obj.model.fit(t_gen, validation_data=val_gen, validation_steps=val_steps, 
                             epochs=10, steps_per_epoch=t_steps, verbose=1, callbacks=[checkpoint])
