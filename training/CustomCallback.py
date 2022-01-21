@@ -15,33 +15,17 @@ class CustomCallback(Callback):
         # The epoch the training stops at.
         self.stopped_epoch = 0
         # Initialize the best as infinity.
-        self.best_pp = np.Inf
         self.best_loss = np.Inf
         self.best_val_loss = np.Inf
         self.best_epoch = 0
-        # list of perplexity scores
-        self.pp = []
-    
-    def on_test_begin(self, logs=None):
-        self.loss = []
-        
-    def on_test_batch_end(self, batch, logs=None):
-        self.loss.append(np.exp(logs.get('loss')))
-        
-    def on_test_end(self, epoch, logs=None):
-        pp = gmean(self.loss)
-        self.pp.append(pp)
     
     def on_epoch_end(self, epoch, logs=None):
-        current_pp = self.pp[-1]
-        if current_pp < self.best_pp:
-            self.best_pp = current_pp
+        if logs['val_loss'] < self.best_val_loss:
             self.best_loss = logs['loss']
             self.best_val_loss = logs['val_loss']
             self.best_epoch = epoch + 1
             self.wait = 0
             self.best_weights = self.model.get_weights()
-            print(f'Perplexity is: {current_pp}')
         else:
             self.wait += 1
             if self.wait >= self.patience:
@@ -53,5 +37,5 @@ class CustomCallback(Callback):
     def on_train_end(self, logs=None):
         if self.stopped_epoch > 0:
             print("Epoch %05d: early stopping" % (self.stopped_epoch + 1))
-        self.model.save(f'{self.model_path}-ep{self.stopped_epoch:03d}-loss{self.best_loss:.3f}-val_loss{self.best_val_loss:.3f}-pp{self.best_pp}.h5')
-            
+        self.model.save(f'{self.model_path}-ep{self.best_epoch:03d}-loss{self.best_loss:.3f}-val_loss{self.best_val_loss:.3f}.h5')
+        
