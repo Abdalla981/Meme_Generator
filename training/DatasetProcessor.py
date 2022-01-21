@@ -57,53 +57,57 @@ class DatasetProcessor(Dataset):
                 embedding_matrix[index] = embedding_vector
         return embedding_matrix
 
-    def create_sequences(self, captions: list, image: Array) -> Tuple[Array, Array, Array]:
+    def create_sequences(self, sequence: list, image: Array) -> Tuple[Array, Array, Array]:
         X1, X2, y = [], [], []
-        for caption in captions:
-            sequence = self.tokenizer.texts_to_sequences([caption])[0]
-            for i in range(1, len(sequence)):
-                in_sequence, out_word = sequence[:i], sequence[i]
-                in_sequence = pad_sequences([in_sequence], padding='post', truncating='post', maxlen=self.max_seq_length)[0]
-                out_word = to_categorical([out_word], num_classes=self.num_of_vocab)[0]
-                X1.append(image)
-                X2.append(in_sequence)
-                y.append(out_word)
+        for i in range(1, len(sequence)):
+            in_sequence, out_word = sequence[:i], sequence[i]
+            in_sequence = pad_sequences([in_sequence], padding='post', truncating='post', maxlen=self.max_seq_length)[0]
+            out_word = to_categorical([out_word], num_classes=self.num_of_vocab)[0]
+            X1.append(image)
+            X2.append(in_sequence)
+            y.append(out_word)
         return np.array(X1), np.array(X2), np.array(y)
     
-    def data_generator(self) -> Tuple[List[Array], Array]:
+    def data_generator(self, batch_size=1) -> Tuple[List[Array], Array]:
         while 1:
+            in_images, in_seqs, out_words = [], [], []
             names = list(self.captions.keys())
             np.random.shuffle(names)
             for name in names:
-                captions = self.captions[name]
                 image = np.squeeze(self.images[name])
-                in_image, in_sequence, out_word = self.create_sequences(captions, image)
-                yield ([in_image, in_sequence], out_word)
+                for caption in self.captions[name]:
+                    sequence = self.tokenizer.texts_to_sequences([caption])[0]
+                    in_image, in_sequence, out_word = self.create_sequences(sequence, image)
+                    in_images.append(in_image), in_seqs.append(in_sequence), out_words.append(out_word)
+                    if len(in_images) == batch_size:
+                        in_image_vec = np.vstack(in_images)
+                        in_seq_vec = np.vstack(in_seqs)
+                        out_word_vec = np.vstack(out_words)
+                        in_images, in_seqs, out_words = [], [], []
+                        yield ([in_image_vec, in_seq_vec], out_word_vec)
     
     def tallest_seq_length(self, captions_list: dict) -> int:
         return max(len(caption.split()) for caption in captions_list)
     
     def print_sample_of_sequences(self, num: int=2) -> None:
-        j = 0
-        inputs, outputs = next(self.data_generator())
-        if num > outputs.shape[0]:
-            num = outputs.shape[0]
         print('-------------Sequences sample---------------')
         print('{0:<15}'.format('Image size'), end=' | ')
         print('{0:<100}'.format('Sequences'), end=' | ')
         print('{0:<15}'.format('Out word'))
+        gen = self.data_generator(batch_size=1)
         for i in range(num):
+            inputs, outputs = next(gen)
+            print(inputs[0].shape, inputs[1].shape, outputs.shape)
             out_word = ''
             print('{0:<15}'.format(f'Caption {i}'))
-            while out_word != self.end_token:
-                print('{0:<15}'.format(f'{inputs[0][j].shape}'), end=' | ')
+            for j, image in enumerate(inputs[0]):
+                print('{0:<15}'.format(f'{image.shape}'), end=' | ')
                 seq = inputs[1][j].tolist()
                 text = self.tokenizer.sequences_to_texts([seq])[0].replace(self.oov_token, '')
                 print("{0:<100}".format(text.strip()), end=' | ')
                 seq = [np.argmax(outputs[j])]
                 out_word = self.tokenizer.sequences_to_texts([seq])[0]
                 print('{0:<15}'.format(out_word))
-                j += 1
         print('---------------------------')
 
     def print_dataset_info(self) -> None:
