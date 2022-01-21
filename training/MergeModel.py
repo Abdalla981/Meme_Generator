@@ -1,8 +1,8 @@
 import os
 from keras.models import load_model
 from keras.utils.vis_utils import plot_model
-from keras.layers import Dense, LSTM, Dropout, Input, Embedding, LayerNormalization, Concatenate
-from keras.regularizers import L2
+from keras.layers import Dense, LSTM, Dropout, Input, Embedding, LayerNormalization, add
+from keras.activations import tanh
 from tensorflow.keras.initializers import Constant, RandomNormal
 from keras.models import Model
 from training.DatasetProcessor import DatasetProcessor
@@ -21,11 +21,18 @@ Methods:
 
 class MergeModel():
     def __init__(self, model_folder: str, dp_obj: DatasetProcessor, 
-                 init: bool=True, model_name: str=None) -> None:
+                 init: bool=True, model_name: str=None, activation: str='relu', neurons: int=512,
+                lstm_neurons: int=256, dropout: int=0, lstm_dropout: int=0.5, im_norm: bool=True) -> None:
         self.model_folder = model_folder
         self.model_name = model_name
         self.init = init
         self.dp_obj = dp_obj
+        self.im_norm = im_norm
+        self.activation = activation
+        self.neurons = neurons
+        self.lstm_neurons = lstm_neurons
+        self.dropout = dropout
+        self.lstm_dropout = lstm_dropout
         self.model = self.define_model_architecture() if init else self.load_model_from_file()
         
     def load_model_from_file(self) -> Model:
@@ -36,27 +43,33 @@ class MergeModel():
     def define_model_architecture(self) -> Model:
         # image embedding encoder
         inputs1 = Input(shape=self.dp_obj.image_embedding_dims)
-        ie0 = LayerNormalization()(inputs1)
-        ie1 = Dense(128, kernel_initializer=RandomNormal(mean=0, stddev=0.03), activation='relu')(ie0)
+        ie0 = LayerNormalization(name='Image_Normalization')(inputs1) if self.im_norm else inputs1
+        ie1 = Dropout(self.dropout, name='Image_Dropout')(ie0)
         
         # text embedding encoder
         inputs2 = Input(shape=(self.dp_obj.max_seq_length,))
         te1 = Embedding(self.dp_obj.num_of_vocab, self.dp_obj.glove_dims, 
                         embeddings_initializer=Constant(self.dp_obj.embedding_matrix), 
-                        mask_zero=True)(inputs2)
-        te3 = LSTM(128, dropout=0.5, kernel_initializer=RandomNormal(mean=0, stddev=0.03))(te1)
+                        mask_zero=True, name='Sequence_Embedding')(inputs2)
+        te2 = Dropout(self.dropout, name='Embedding_Dropout')(te1)
+        te3 = LSTM(self.lstm_neurons, dropout=self.lstm_dropout, name='Sequence_Encoder',
+                   kernel_initializer=RandomNormal(mean=0, stddev=0.03))(te2)
         
-        # decoder
-        d1 = Concatenate()([ie1, te3])
-        d2 = Dense(128, activation='relu')(d1)
-        ouputs = Dense(self.dp_obj.num_of_vocab, activation='softmax')(d2)
+        # multimodal layer
+        mm1 = Dense(self.neurons, kernel_initializer=RandomNormal(mean=0, stddev=0.03),
+                    name='Image_Projection')(ie1)
+        mm2 = Dense(self.neurons, activation=self.activation, name='LSTM_Projection')(te3)
+        # mm3 = Dense(self.neurons, activation=self.activation, name='Embedding_Projection')(te1)
+        d1 = add([mm1, mm2], name='Multimodal_Addition')
+        d2 = tanh(d1)
+        ouputs = Dense(self.dp_obj.num_of_vocab, activation='softmax', name='Softmax_Output')(d2)
         
         model = Model(inputs=[inputs1, inputs2], outputs=ouputs)
         model.compile(loss='categorical_crossentropy', optimizer='adam')
         return model
 
     def print_model_summary(self) -> None:
-        path = os.path.join(self.model_folder, 'model.png')
+        path = os.path.join(self.model_folder, 'architecture.png')
         plot_model(self.model, to_file=path, show_shapes=True)
         print(self.model.summary())
         
