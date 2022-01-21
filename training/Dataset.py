@@ -131,18 +131,23 @@ class Dataset:
             [captions_list.append(caption) for caption in captions]
         return captions_list
 
-    def show_samples(self, images_dict: dict=None, captions_dict: dict=None, num: int=5, 
-                     color: Tuple[int, int, int]=(255, 255, 255), output_file_path: dict=None) -> None:
+    def show_samples(self, images_dict: dict=None, captions_dict: dict=None, num: int=5,
+                     color: Tuple[int, int, int]=(255, 255, 255), output_file_path: dict=None,
+                     splitted: bool=False, rm_tokens: bool=True) -> None:
+        s_idx, e_idx = (1, -1) if rm_tokens else (0, None)
         if images_dict is None:
             images_dict = self.images
         if captions_dict is None:
             captions_dict = self.captions
         names = [random.choice(list(captions_dict.keys())) for i in range(num)]
         for name in names:
-            caption = captions_dict[name][0].split()
+            if splitted:
+                caption = captions_dict[name]
+            else:
+                caption = captions_dict[name][0].split()
             # split the text in half
-            text1 = ' '.join(caption[:len(caption)//2])
-            text2 = ' '.join(caption[len(caption)//2:])
+            text1 = ' '.join(caption[s_idx:len(caption)//2])
+            text2 = ' '.join(caption[len(caption)//2:e_idx])
             image = images_dict[name]
             if image is not None:
                 img = MemeDrawer.ImageText(image)
