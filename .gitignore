@@ -5,6 +5,7 @@ old_dataset/
 Meme_drawer/
 models/
 *.300d.txt
+Drive/
 
 tf-coreml/build/
 tf-coreml/dist/

@@ -21,8 +21,8 @@ Methods:
 
 class MergeModel():
     def __init__(self, model_folder: str, dp_obj: DatasetProcessor, 
-                 init: bool=True, model_name: str=None, activation: str='relu', neurons: int=512,
-                lstm_neurons: int=256, dropout: int=0, lstm_dropout: int=0.5, im_norm: bool=True) -> None:
+                 init: bool=True, model_name: str=None, activation: str=None, neurons: int=512,
+                lstm_neurons: int=256, dropout: int=0, lstm_dropout: int=0, im_norm: bool=False) -> None:
         self.model_folder = model_folder
         self.model_name = model_name
         self.init = init
@@ -57,7 +57,7 @@ class MergeModel():
         
         # multimodal layer
         mm1 = Dense(self.neurons, kernel_initializer=RandomNormal(mean=0, stddev=0.03),
-                    name='Image_Projection')(ie1)
+                    activation=self.activation, name='Image_Projection')(ie1)
         mm2 = Dense(self.neurons, activation=self.activation, name='LSTM_Projection')(te3)
         # mm3 = Dense(self.neurons, activation=self.activation, name='Embedding_Projection')(te1)
         d1 = add([mm1, mm2], name='Multimodal_Addition')
