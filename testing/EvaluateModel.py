@@ -98,27 +98,6 @@ class EvaluateModel():
                         candidates.append((caption + ' ' + word, score + log2(prob)))
             sequences = sorted(candidates, key=lambda tup:tup[1])[-self.k:]
         return sequences[-1][0]
-    
-    def show_generated_examples(self, num: int=5, color: Tuple[int, int, int]=(255, 255, 255), 
-                                output_folder_path: dict=None) -> None:
-        names = [np.random.choice(list(self.gen_captions.keys())) for i in range(num)]
-        for name in names:
-            caption = self.gen_captions[name]
-            # split the text in half
-            text1 = ' '.join(caption[1:len(caption)//2])
-            text2 = ' '.join(caption[len(caption)//2:-1])
-            image = self.true_images[name]
-            if image is not None:
-                img = ImageText(image)
-                # write the first half of the text on top
-                img.write_text_box(0, 0, text1, box_width=img.size[0]+2,
-                                font_size=32, color=color, place='center')
-                # write the second half of the text on bottom
-                img.write_text_box(0, 255, text2, box_width=img.size[0]+2,
-                                font_size=32, color=color, place='center', bottom=True)
-                img.image.show()
-                if output_folder_path is not None:
-                    img.save(os.path.join(output_folder_path, name + '.jpg'))
         
     def save_BLEU_evaluation(self) -> None:
         b1 = corpus_bleu(self.og_captions, list(self.gen_captions.values()), weights=(1.0, 0, 0, 0))
