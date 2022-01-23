@@ -49,7 +49,7 @@ for emb in embeddings:
                 path = os.path.join(model_obj.model_folder, file_name)
                 callback = CustomCallback(path, patience=1)
                 # fit model 
-                history = model_obj.model.fit(t_gen, validation_data=val_gen, validation_steps=val_steps, epochs=10, steps_per_epoch=t_steps, verbose=0, callbacks=[callback, TqdmCallback(verbose=2), tensorboard_callback])
+                history = model_obj.model.fit(t_gen, validation_data=val_gen, validation_steps=val_steps, epochs=10, steps_per_epoch=t_steps, verbose=0, callbacks=[callback])
                 eval_obj = EvaluateModel(model_obj, None, dp_obj=val_dp_obj, k=5)
                 eval_obj.save_captions(file_name)
                 eval_obj.save_BLEU_evaluation(file_name)
