@@ -133,13 +133,16 @@ class Dataset:
 
     def show_samples(self, images_dict: dict=None, captions_dict: dict=None, num: int=5,
                      color: Tuple[int, int, int]=(255, 255, 255), output_file_path: dict=None,
-                     splitted: bool=False, rm_tokens: bool=True) -> None:
+                     splitted: bool=False, rm_tokens: bool=True, random: bool=True) -> None:
         s_idx, e_idx = (1, -1) if rm_tokens else (0, None)
         if images_dict is None:
             images_dict = self.images
         if captions_dict is None:
             captions_dict = self.captions
-        names = [random.choice(list(captions_dict.keys())) for i in range(num)]
+        if random:
+            names = [random.choice(list(captions_dict.keys())) for i in range(num)]
+        else:
+            names = list(captions_dict.keys())
         for name in names:
             if splitted:
                 caption = captions_dict[name]
