@@ -2,7 +2,7 @@ from training.Dataset import Dataset
 from json import load
 
 if __name__ == '__main__':
-    gen_captions_path = 'models/BestModel/B0/generated_captions.json'
+    gen_captions_path = 'models/BestModel/B0/test_generated_captions.json'
     images_path = 'dataset/memes3'
     output_folder = 'models/BestModel/B0/samples'
     template_names = ['MrBrut', 'Gamer_rage', 'Idiot_Football_Coach', 

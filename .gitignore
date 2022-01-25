@@ -3,9 +3,11 @@
 Notes/
 old_dataset/
 Meme_drawer/
-models/
+models/OldModels
+models/ComparedModels
 *.300d.txt
 Drive/
+*.h5
 
 tf-coreml/build/
 tf-coreml/dist/
