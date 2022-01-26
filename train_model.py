@@ -15,8 +15,8 @@ if __name__ == '__main__':
     val_captions_path = 'dataset/CaptionsClean3_validation.txt'
     embeddings_path = 'embedding/glove/captionsGlove.pkl'
     model_folder_path = 'models/Test'
-    batch_size = 1
 
+    batch_size = 128
     i = 0
     done = 8
     embeddings = ['B0']
