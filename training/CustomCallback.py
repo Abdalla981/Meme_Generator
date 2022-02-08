@@ -28,7 +28,7 @@ class CustomCallback(Callback):
             self.best_weights = self.model.get_weights()
         else:
             self.wait += 1
-            if self.wait >= self.patience:
+            if self.wait > self.patience:
                 self.stopped_epoch = epoch
                 self.model.stop_training = True
                 print("Restoring model weights from the end of the best epoch.")

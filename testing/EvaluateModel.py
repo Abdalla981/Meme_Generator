@@ -11,19 +11,20 @@ from training.MergeModel import MergeModel
 from training.Dataset import Dataset
 
 '''
-This class uses a model object and path to actual images to evaluate that model and allows to 
-save some sample images with generated captions.
+This class uses a model and a datasetprocessor objects to generate captions for that dataset.
+The generated captions are compared against the reference captions in the datasetprocessor and the
+BLEU score is calculated along with the number of vocabulary in the generated captions.
 
-Note: this class print the BLEU score for the generated captions eventhough it might not be the best
-metric to evaluate the captions on. Also, captions are generated with greedy search instead of
-beam search. The beam search will be added soon.
+Note: this class prints the BLEU score for the generated captions eventhough it might not be the best
+metric to evaluate the captions on.
 
 Methods:
-- evaluate_model: this method shuffles the captions and generates a caption per image while saving 
+- generate_captions: this method shuffles the captions and generates a caption per image while saving 
 the reference captions of that image for BLEU score later
-- generate_caption: generates a caption using an image (embedding)
-- show_generated_examples: shows (and saves) sample images with generated captions
-- save_BLEU_evaluation: prints BLEU scores and saves it to a file
+- beam_search: generates a caption for each image using beam search algorithm
+- greedy_search: generates a caption for each image using greedy search algorithm
+- save_BLEU_evaluation: prints BLEU scores and saves it to a text file
+- save_captions: saves the generated captions into a json file
 '''
 
 class EvaluateModel():

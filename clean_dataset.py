@@ -1,3 +1,4 @@
+import nltk
 from preprocessing.CaptionsCleaning import CaptionsCleaning
 
 '''
@@ -9,6 +10,12 @@ if __name__ == '__main__':
     captions_path = 'dataset/Captions3.txt'
     new_captions_path = 'dataset/CaptionsClean3.txt'
     
+    if input('Download nltk corpora?(y/n) ') == 'y':
+        nltk.download('words')
+        nltk.download('wordnet')
+        nltk.download('webtext')
+        nltk.download('nps_chat')
+        nltk.download('reuters')
     if input('Clean Dataset?(y/n) ') == 'y':
         clean_obj = CaptionsCleaning(captions_path)
         clean_obj.clean_dataset()

@@ -13,15 +13,17 @@ Captions are stored as a dictionary of {image_name: list_of_captions}
 Images are stored as a dictionary of {image_name: pillow_image_object}
 
 Methods:
+- load_captions: loads the captions from txt file into a dictionary
+- load_image: loads image from folder using the name parameter and image_path variable
+- load_images: iterates over captions or images in a folder to load the correpsponding images using 
+load_image method
+- load_image_embeddings: loads the image embeddings and returns only the embeddings of images that 
+have caption
+- load_glove_embedding: loads the glove embeddings dictionary from file
 - get_captions_counter: returns the number of samples per image_name as a collection counter
 - get_vocabulary_counter: returns a counter of all vocabulary words
 - captions_to_list: returns a list of all captions
-- load_captions: loads the captions from txt file into a dictionary
-- load_image: loads image from folder using the name parameter and image_path variable
-- load_images: iterates over captions to load the correpsponding images using load_image method
-- load_image_embeddings: loads the image embeddings and returns only the embeddings of images that have caption
-- load_glove_embedding: loads the glove embeddings dictionary from file
-- show_samples: randomly selects images and writes a corresponding caption on them using MemeDrawer.py
+- show_samples: writes the caption on the image using MemeDrawer.py
 - save_captions_to_file: saves the captions to a new file
 - save_images_to_folder: saves the images to a new folder
 - save_image_features_to_file: saves image embeddings to a file
@@ -132,7 +134,7 @@ class Dataset:
         return captions_list
 
     def show_samples(self, images_dict: dict=None, captions_dict: dict=None, num: int=5,
-                     color: Tuple[int, int, int]=(255, 255, 255), output_file_path: dict=None,
+                     color: Tuple[int, int, int]=(255, 255, 255), output_file_path: str=None,
                      splitted: bool=False, rm_tokens: bool=True, random: bool=True) -> None:
         s_idx, e_idx = (1, -1) if rm_tokens else (0, None)
         if images_dict is None:

@@ -13,13 +13,12 @@ This class inherits the Dataset class and prepares the dataset to be passed thro
 
 Methods:
 - process_dataset: prepares the dataset for training
-
-- captions_tokenizer: fits a tokenizer on the training data and returns the tokenizer
-- tallest_seq_length: returns the length of the tallest sequence
-- split_dataset: splits the dataset into train, validation and test sets
+- captions_tokenizer: fits a tokenizer on the captions and returns the tokenizer
+- create_embedding_matrix: creates embedding matrix for initializing the embedding layer later
 - create_sequences: creates an array of sequences (image, sequence[:i], next_word)
 - data_generator: uses progressive loading to create sequences for better memory manegment
-- create_embedding_matrix: creates embedding matrix for initializing the embedding layer later
+- tallest_seq_length: returns the length of the tallest sequence
+- split_dataset: splits the dataset into train, validation and test sets
 - print_sample_of_sequences: prints a number of captions in sequences using the generator
 - print_dataset_info: prints useful info on the loaded dataset
 '''

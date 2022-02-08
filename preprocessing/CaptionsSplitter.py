@@ -4,7 +4,7 @@ from typing import Tuple
 from training.Dataset import Dataset
 
 '''
-This class implements a captions spliiter to split the captions into train, validaiton and test sets.
+This class implements a captions spliter to split the captions into train, validaiton and test sets.
 The tokens (start and end) are added before the splitting.
 
 Methods:

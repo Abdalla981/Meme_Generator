@@ -6,12 +6,12 @@ from nltk.stem import WordNetLemmatizer
 
 '''
 This class inherits the Dataset class and processes the dataset to clean it up 
-and remove any undesired captions or images
+and remove any undesired captions
 
 Mehtods:
 - clean_captions: cleans up the captions by removing punctuations, lowercasing the words 
 and removing leading and trailing spaces.
-- remove_non_english_words: removes non-english captions using a text corpus from nltk
+- remove_non_english_words: removes non-english captions using a text corpora from nltk
 (words, wordnet, webtext, nps_chat, reuters)
 - remove_captions_with_non_standard_characters: removes captions that have non-latin letters
 - remove_duplicate_captions: remove duplicated captions per image
