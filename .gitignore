@@ -9,6 +9,8 @@ models/ComparedModels
 Drive/
 *.h5
 *.pdf
+new_images/
+generated_memes/
 
 tf-coreml/build/
 tf-coreml/dist/

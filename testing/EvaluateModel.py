@@ -28,7 +28,7 @@ the reference captions of that image for BLEU score later
 '''
 
 class EvaluateModel():
-    def __init__(self, model_obj: MergeModel, images_path: str, dp_obj: DatasetProcessor=None, num: int=None, k: int=5,
+    def __init__(self, model_obj: MergeModel, dp_obj: DatasetProcessor, generate: bool=False, num: int=None, k: int=5,
                  eval: str='beam', verbose: int=0) -> None:
         self.model_obj = model_obj
         self.dp_obj = model_obj.dp_obj if dp_obj is None else dp_obj
@@ -38,8 +38,8 @@ class EvaluateModel():
         self.eval = eval
         if eval != 'beam' and eval != 'greedy':
             raise ValueError(f'eval parameter should be either "greedy" or "beam"!')
-        self.true_images = Dataset(images_path=images_path).images
-        self.og_captions, self.gen_captions = self.generate_captions()
+        if generate:
+            self.og_captions, self.gen_captions = self.generate_captions()
         
     def generate_captions(self) -> Tuple[list, dict]:
         og_captions, gen_captions = [], {}

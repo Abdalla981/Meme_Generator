@@ -27,10 +27,11 @@ class DatasetProcessor(Dataset):
     def __init__(self, captions_path: str, images_path: str, image_embedding: str, glove_path: str,
                 start_token: str='startseq', end_token: str='endseq', oov_token: str='[UNK]') -> None:
         super().__init__(captions_path, images_path, image_embedding, glove_path)
-        assert(len(self.captions) == len(self.images))
         self.num_of_samples = len(self.captions)
-        self.glove_dims = list(self.glove_embedding.values())[0].shape[0]
-        self.image_embedding_dims = list(self.images.values())[0].shape[1]
+        if glove_path is not None:
+            self.glove_dims = list(self.glove_embedding.values())[0].shape[0]
+        if images_path is not None:
+            self.image_embedding_dims = list(self.images.values())[0].shape[1]
         self.start_token = start_token
         self.end_token = end_token
         self.oov_token = oov_token

@@ -20,7 +20,7 @@ Methods:
 '''
 
 class MergeModel():
-    def __init__(self, model_folder: str, dp_obj: DatasetProcessor, 
+    def __init__(self, model_folder: str, dp_obj: DatasetProcessor=None, 
                  init: bool=True, model_name: str=None, activation: str=None, neurons: int=512,
                 lstm_neurons: int=256, dropout: int=0, lstm_dropout: int=0, im_norm: bool=False,
                 tanhp: bool=False) -> None:
