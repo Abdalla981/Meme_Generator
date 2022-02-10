@@ -8,6 +8,7 @@ models/ComparedModels
 *.300d.txt
 Drive/
 *.h5
+!models/BestModel/B0/Merge-model-B0-n256-ln256-tanhpTrue-ep004-loss4.717-val_loss5.467.h5
 *.pdf
 new_images/
 generated_memes/
